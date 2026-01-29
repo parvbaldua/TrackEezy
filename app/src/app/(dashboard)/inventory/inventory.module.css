@@ -1,0 +1,294 @@
+/* Inventory Screen Styles */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    animation: fadeIn 0.3s ease-out;
+    padding-bottom: 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.headerActions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+}
+
+.addButton {
+    padding: 8px !important;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+    background-color: hsl(var(--primary)) !important;
+    color: white !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.searchRow {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.searchWrapper {
+    position: relative;
+    flex: 1;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: hsl(var(--text-muted));
+    pointer-events: none;
+}
+
+.searchInput {
+    padding-left: 40px !important;
+    background-color: hsl(var(--bg-card)) !important;
+}
+
+.filterButton {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+}
+
+/* LIST VIEW (Mobile Default) */
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.itemCard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.1s;
+    cursor: pointer;
+    background-color: hsl(var(--bg-card));
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.itemCard:active {
+    transform: scale(0.99);
+}
+
+.itemInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.itemNameRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.itemName {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.lowStockIcon {
+    color: hsl(var(--danger));
+}
+
+.itemSku {
+    font-size: 0.75rem;
+    color: hsl(var(--text-secondary));
+    margin-top: 2px;
+}
+
+.itemMeta {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.itemPrice {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: hsl(var(--primary));
+}
+
+.stockCount {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: hsl(var(--text-muted));
+}
+
+.stockLow {
+    color: hsl(var(--danger));
+}
+
+/* TABLE VIEW (Desktop) */
+.tableContainer {
+    display: none;
+    /* Hidden on mobile */
+    background-color: hsl(var(--bg-card));
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tableHeader {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    padding: 16px;
+    background-color: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-weight: 600;
+    color: hsl(var(--text-secondary));
+    font-size: 0.875rem;
+}
+
+.tableRow {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    padding: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.tableRow:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.tableCell {
+    font-size: 0.9rem;
+}
+
+.cellPrimary {
+    font-weight: 500;
+    color: white;
+}
+
+.rowAction {
+    display: flex;
+    justify-content: flex-end;
+}
+
+@media (min-width: 1024px) {
+    .list {
+        display: none;
+        /* Hide card list on desktop */
+    }
+
+    .tableContainer {
+        display: block;
+        /* Show table on desktop */
+    }
+
+    .addButton {
+        width: auto;
+        height: auto;
+        border-radius: var(--radius-md);
+        padding: 12px 24px !important;
+        font-size: 0.9rem;
+        gap: 8px;
+        /* Adjust button to look standard text button */
+    }
+
+    .addBtnText {
+        display: block;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .addButton svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+.addBtnText {
+    display: none;
+}
+
+/* New Form Container for spacing */
+.formContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+@media (max-width: 640px) {
+    .formContainer {
+        gap: 20px;
+    }
+}
+
+.rowGroup {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+/* Added explicit modal styles that were missing */
+.modalLabel {
+    display: block;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+    /* Spacious gap between label and input */
+    font-weight: 500;
+}
+
+.modalInput {
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    padding: 10px 14px !important;
+    border-radius: 8px !important;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.modalInput:focus {
+    border-color: hsl(var(--primary)) !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+
+@media (max-width: 640px) {
+    .rowGroup {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}

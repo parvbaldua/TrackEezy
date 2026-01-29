@@ -1,0 +1,536 @@
+/* Billing Page Layout */
+
+.container {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    /* Tighter gap */
+    height: 100%;
+    /* Fills the .contentWrapper padding box */
+    width: 100%;
+    overflow: hidden;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Left Panel: Product Selection */
+.productSection {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    /* Reduced from 24px */
+    padding-right: 4px;
+    padding-left: 25px;
+    /* Re-applied */
+    height: 100%;
+    overflow-y: auto;
+    /* Internal Scroll Enabled */
+    position: relative;
+    /* Scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: hsla(0, 0%, 100%, 0.1) transparent;
+}
+
+.productSection::-webkit-scrollbar {
+    width: 6px;
+}
+
+.productSection::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.productSection::-webkit-scrollbar-thumb {
+    background-color: hsla(0, 0%, 100%, 0.1);
+    border-radius: 10px;
+}
+
+.productSection::-webkit-scrollbar-thumb:hover {
+    background-color: hsla(0, 0%, 100%, 0.2);
+}
+
+.searchRow {
+    display: flex;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background-color: hsl(var(--bg-main));
+    padding-top: 0;
+}
+
+.searchWrapper {
+    position: relative;
+    flex: 1;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: hsl(var(--text-muted));
+    pointer-events: none;
+}
+
+.searchInput {
+    padding-left: 40px !important;
+    background-color: hsl(var(--bg-card)) !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    height: 44px;
+    /* Match standard input height */
+}
+
+.productsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    /* Slightly smaller min-width for tighter grid */
+    gap: 12px;
+    /* Reduced gap */
+    padding-bottom: 53px;
+    /* User requested 53px */
+    padding-right: 4px;
+    overflow: visible;
+}
+
+/* Product Card */
+.productCard {
+    background-color: hsl(var(--bg-card));
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
+    padding: 10px;
+    /* Reduced padding */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.productCard:hover {
+    border-color: hsl(var(--primary));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 10;
+}
+
+.productName {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: white;
+    margin-bottom: 2px;
+    line-height: 1.2;
+}
+
+.productMeta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 6px;
+}
+
+.productPrice {
+    font-weight: 700;
+    color: hsl(var(--primary));
+    font-size: 0.9rem;
+}
+
+.productStock {
+    font-size: 0.7rem;
+    color: hsl(var(--text-muted));
+}
+
+/* Right Panel: Cart / Bill */
+.cartSection {
+    flex: 1;
+    background-color: hsl(var(--bg-card));
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 300px;
+    /* Reduced min-width */
+    max-width: 450px;
+    /* Prevent overly wide cart */
+    height: 92%;
+    /* User requested 92% */
+}
+
+.cartHeader {
+    padding: 12px 16px;
+    /* Compact header */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.02);
+    flex-shrink: 0;
+}
+
+.cartHeaderContent {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    /* Explicit equivalent to gap-6 */
+}
+
+.cartTitle {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+}
+
+.cartItems {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.emptyCart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: hsl(var(--text-muted));
+    gap: 12px;
+    opacity: 0.6;
+}
+
+/* Cart Item Row */
+.cartItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-md);
+}
+
+.cartItemInfo {
+    flex: 1;
+}
+
+.cartItemName {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: white;
+}
+
+.cartItemPrice {
+    font-size: 0.8rem;
+    color: hsl(var(--text-secondary));
+}
+
+.cartControls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.qtyBtn {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    cursor: pointer;
+    border: none;
+}
+
+.qtyBtn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.qtyValue {
+    font-size: 0.9rem;
+    font-weight: 600;
+    width: 20px;
+    text-align: center;
+}
+
+/* Bill Summary Footer */
+.billSummary {
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.summaryRow {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    color: hsl(var(--text-secondary));
+    font-size: 0.9rem;
+}
+
+.totalRow {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: hsl(var(--primary));
+}
+
+.actionButtons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .container {
+        flex-direction: column;
+        height: auto;
+        overflow: visible;
+    }
+
+    .productSection {
+        height: auto;
+        overflow: visible;
+        padding-left: 0;
+        /* Reset for Mobile */
+        padding-right: 0;
+        /* Reset for Mobile */
+    }
+
+    .productsGrid {
+        overflow: visible;
+        padding-bottom: 100px;
+        /* Ensure space for fixed cart header */
+        padding-right: 0;
+        /* Reset for mobile */
+    }
+
+    .cartSection {
+        position: fixed;
+        inset: 0;
+        /* Modern shortcut for top/left/right/bottom: 0 */
+        z-index: 9999 !important;
+        /* Super High */
+        background-color: hsl(var(--bg-main));
+        transform: translateY(100%);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        border-radius: 0;
+        display: flex;
+        flex-direction: column;
+        height: 100dvh;
+        /* Dynamic Height for Mobile Browsers */
+        max-height: 100dvh;
+        overflow: hidden;
+        /* Prevent body scroll bleed */
+    }
+
+    .cartSection.open {
+        transform: translateY(0);
+    }
+
+    /* Floating Bill Summary Bar (New) */
+    .floatingCartBar {
+        display: none;
+        /* Hidden by default on desktop */
+        position: fixed;
+        bottom: 90px;
+        /* Above BottomNav (70px + gap) */
+        left: 16px;
+        right: 16px;
+        background: hsl(var(--primary));
+        color: white;
+        padding: 12px 20px;
+        border-radius: var(--radius-full);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        z-index: 40;
+        /* Below cart overlay but above content */
+        cursor: pointer;
+        animation: slideUp 0.3s ease-out;
+        display: flex;
+        /* Explicitly show on mobile */
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    /* Mobile Cart Header acts as toggle */
+    .cartHeader {
+        cursor: pointer;
+        background-color: hsl(var(--bg-card));
+        /* Ensure solid background */
+        border-top: 1px solid hsl(var(--primary));
+    }
+
+    .cartItems {
+        background-color: hsl(var(--bg-main));
+        /* Darker background for list */
+    }
+}
+
+/* Ensure explicit visibility */
+.cartItem {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cartItemName {
+    color: white !important;
+    font-size: 1rem;
+}
+
+/* Receipt Styles - Screen Hidden by Default */
+.receipt {
+    display: none;
+}
+
+/* Print Styles (Thermal Printer / DMart Style) */
+@media print {
+
+    /* Hide everything on screen */
+    body * {
+        visibility: hidden;
+    }
+
+    /* Target the Receipt only */
+    .receipt,
+    .receipt * {
+        visibility: visible;
+        display: block !important;
+    }
+
+    .receipt {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        /* Or 80mm for thermal */
+        margin: 0;
+        padding: 0;
+        font-family: 'Courier New', Courier, monospace;
+        /* Monospace is key */
+        font-size: 12px;
+        color: black;
+        line-height: 1.2;
+    }
+
+    /* Utilities for the receipt layout */
+    .receiptHeader {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .receiptTitle {
+        font-size: 16px;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+    }
+
+    .receiptAddress {
+        font-size: 12px;
+        margin-bottom: 2px;
+    }
+
+    .receiptSubText {
+        font-size: 10px;
+        font-style: italic;
+        margin-bottom: 5px;
+    }
+
+    .divider {
+        border-top: 1px dashed black;
+        margin: 5px 0;
+    }
+
+    .doubleDivider {
+        border-top: 1px double black;
+        /* Or 2px solid */
+        border-bottom: 1px double black;
+        margin: 5px 0;
+        height: 3px;
+    }
+
+    .receiptRow {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .infoRow {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2px;
+    }
+
+    /* Table-like structure for items */
+    .itemTable {
+        width: 100%;
+        text-align: left;
+        border-collapse: collapse;
+    }
+
+    .itemTable th {
+        border-bottom: 1px dashed black;
+        padding-bottom: 5px;
+        font-weight: normal;
+    }
+
+    .itemTable td {
+        padding: 4px 0;
+    }
+
+    .alignRight {
+        text-align: right;
+    }
+
+    .totalSection {
+        margin-top: 10px;
+        border-top: 1px dashed black;
+        padding-top: 5px;
+    }
+
+    .netPayable {
+        border-top: 1px dashed black;
+        border-bottom: 1px dashed black;
+        padding: 5px 0;
+        margin: 5px 0;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .footer {
+        text-align: center;
+        margin-top: 10px;
+        font-size: 10px;
+    }
+}

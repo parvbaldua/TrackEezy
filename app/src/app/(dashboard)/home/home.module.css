@@ -1,0 +1,226 @@
+/* Home Dashboard Styles */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    animation: fadeIn 0.5s ease-out;
+    max-width: 1200px;
+    /* Max width for large desktop */
+    margin: 0 auto;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.header {
+    margin-bottom: 8px;
+}
+
+.greeting {
+    font-size: 0.875rem;
+    color: hsl(var(--text-secondary));
+    margin-bottom: 4px;
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: hsl(var(--text-primary));
+    opacity: 0.9;
+}
+
+/* Hero Card */
+.heroCard {
+    position: relative;
+    overflow: hidden;
+    border: none;
+    background: linear-gradient(135deg, hsl(var(--bg-card)) 0%, hsl(var(--bg-main)) 100%);
+    padding: 0 !important;
+}
+
+.heroIconBg {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 16px;
+    opacity: 0.05;
+    color: hsl(var(--primary));
+    pointer-events: none;
+}
+
+.heroContent {
+    padding: 24px;
+    position: relative;
+    z-index: 10;
+}
+
+.heroLabel {
+    font-size: 0.875rem;
+    color: hsl(var(--text-muted));
+    margin-bottom: 4px;
+}
+
+.heroValue {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: hsl(var(--primary));
+    margin-bottom: 16px;
+    text-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+}
+
+.statsRow {
+    display: flex;
+    gap: 24px;
+}
+
+.statItem {
+    display: flex;
+    flex-direction: column;
+}
+
+.statLabel {
+    font-size: 0.75rem;
+    color: hsl(var(--text-secondary));
+}
+
+.statValue {
+    font-size: 1.125rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.accentText {
+    color: hsl(var(--accent));
+}
+
+.dangerText {
+    color: hsl(var(--danger));
+}
+
+/* Section Headers */
+.sectionTitle {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+/* Quick Actions Grid */
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.actionBtn {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: auto;
+}
+
+.btnLarge {
+    height: 96px;
+    font-size: 1.125rem;
+}
+
+.btnSmall {
+    height: 64px;
+    font-size: 0.875rem;
+}
+
+/* Insights */
+.insightsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 12px;
+}
+
+.viewAll {
+    font-size: 0.75rem;
+    color: hsl(var(--primary));
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+}
+
+.insightCard {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+}
+
+.insightText {
+    display: flex;
+    flex-direction: column;
+}
+
+.insightTitle {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.insightSub {
+    font-size: 0.75rem;
+    color: hsl(var(--text-secondary));
+}
+
+/* DESKTOP LAYOUT (Grid System) */
+@media (min-width: 1024px) {
+    .container {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        /* Main Content | Sidebar-ish stuff */
+        grid-template-rows: auto auto;
+        gap: 32px;
+        align-items: start;
+    }
+
+    .header {
+        grid-column: 1 / -1;
+    }
+
+    .heroCard {
+        grid-column: 1 / 2;
+        height: 100%;
+    }
+
+    /* Quick Actions become a proper grid */
+    .gridWrapper {
+        /* We'll need to wrap the grid title and grid in this */
+        grid-column: 2 / 3;
+        grid-row: 2 / 4;
+    }
+
+    .grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .btnLarge,
+    .btnSmall {
+        height: 100px;
+        /* Uniform height on desktop */
+    }
+
+    /* Recent Activity moves to sidebar on desktop context or stays below */
+    .insightsWrapper {
+        grid-column: 1 / 2;
+    }
+}

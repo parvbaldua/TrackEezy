@@ -1,0 +1,126 @@
+/* Sidebar Styles */
+
+.sidebar {
+    display: none;
+    /* Hidden by default (Mobile) */
+    flex-direction: column;
+    width: 250px;
+    background-color: hsl(var(--bg-card));
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    height: 100vh;
+    padding: 24px;
+    overflow: hidden;
+    /* Fixed Positioning for Absolute Stability */
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 50;
+}
+
+@media (min-width: 1024px) {
+    .sidebar {
+        display: flex;
+    }
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 40px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logoIcon {
+    width: 32px;
+    height: 32px;
+    background-color: hsl(var(--primary));
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: black;
+    font-weight: 700;
+}
+
+.nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    /* Removed flex: 1 to allow footer to sit directly below */
+}
+
+.navItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    color: hsl(var(--text-secondary));
+    transition: all var(--transition-fast);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.navItem:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: hsl(var(--text-primary));
+}
+
+.active {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: hsl(var(--primary));
+}
+
+.active .icon {
+    color: hsl(var(--primary));
+}
+
+.footer {
+    margin-top: 20px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.userProfile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: inherit;
+    padding: 8px;
+    border-radius: var(--radius-md);
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.userProfile:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.userAvatar {
+    width: 40px;
+    height: 40px;
+    background-color: hsl(var(--bg-input));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: hsl(var(--text-muted));
+}
+
+.userInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.userName {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.userRole {
+    font-size: 0.75rem;
+    color: hsl(var(--text-muted));
+}

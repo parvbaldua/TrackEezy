@@ -1,0 +1,72 @@
+.nav {
+    position: fixed;
+    bottom: 0;
+    /* Match max-width of Dashboard Layout */
+    width: 100%;
+    max-width: 480px;
+    /* Center it if the parent is centered (DashboardLayout handles positioning, but fixed needs help) */
+    left: 50%;
+    transform: translateX(-50%);
+
+    height: 70px;
+    background: hsl(var(--bg-card));
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    z-index: 50;
+    padding-bottom: env(safe-area-inset-bottom);
+    border-radius: 20px 20px 0 0;
+    /* Premium touch */
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.2);
+}
+
+.item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: hsl(var(--text-muted));
+    text-decoration: none;
+    transition: all var(--transition-fast);
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+/* Center "Sell" Button Styles */
+.item:nth-child(3) {
+    margin-top: -30px;
+}
+
+.item:nth-child(3) .icon {
+    background: hsl(var(--primary));
+    color: hsl(var(--bg-main));
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    padding: 12px;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+    margin-bottom: 4px;
+}
+
+.item:nth-child(3).active .icon {
+    background: hsl(var(--accent));
+    box-shadow: 0 0 20px rgba(94, 234, 212, 0.5);
+    transform: scale(1.1);
+}
+
+.item:active {
+    transform: scale(0.95);
+}
+
+.active {
+    color: hsl(var(--primary));
+}
+
+.label {
+    font-size: 0.7rem;
+    margin-top: 4px;
+    font-weight: 500;
+}

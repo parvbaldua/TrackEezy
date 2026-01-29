@@ -1,0 +1,54 @@
+/* Dashboard Layout Styles */
+
+.layout {
+    min-height: 100vh;
+    background-color: hsl(var(--bg-main));
+    display: flex;
+}
+
+/* On Mobile/Tablet: Content is top-to-bottom */
+/* On Desktop (handled by Sidebar which is flex item): Content is row */
+
+.contentWrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+@media (min-width: 1024px) {
+    .contentWrapper {
+        margin-left: 280px;
+        /* Matches new sidebar width */
+        width: calc(100% - 280px);
+        padding: 24px;
+        height: 100vh;
+        overflow-y: hidden;
+        /* Desktop: Main scroll handled by inner containers */
+    }
+}
+
+@media (max-width: 1023px) {
+    .contentWrapper {
+        margin-left: 0;
+        width: 100%;
+        padding: 16px;
+        padding-top: 80px;
+        /* Space for Mobile Header */
+        height: auto;
+        min-height: 100dvh;
+        overflow-y: visible;
+        /* Mobile: Let body handle scroll */
+    }
+}
+
+/* Hidden container for BottomNav to only show on Mobile */
+.bottomNavWrapper {
+    display: block;
+}
+
+@media (min-width: 1024px) {
+    .bottomNavWrapper {
+        display: none;
+    }
+}

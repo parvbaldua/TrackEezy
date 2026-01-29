@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Invoice>
+
+    <StoreDetails>
+        <StoreName>Your Store Name</StoreName>
+        <Address>Your Store Address</Address>
+        <Phone>XXXXXXXXXX</Phone>
+        <GSTIN>XXXXXXXXXXXXXXX</GSTIN>
+    </StoreDetails>
+
+    <InvoiceInfo>
+        <InvoiceNumber>INV-000123</InvoiceNumber>
+        <Date>2026-01-29</Date>
+        <Time>14:35</Time>
+        <Counter>03</Counter>
+        <Cashier>Amit Kumar</Cashier>
+    </InvoiceInfo>
+
+    <Items>
+        <Item>
+            <ItemName>Rice Premium</ItemName>
+            <Quantity>2</Quantity>
+            <Rate>60.00</Rate>
+            <Amount>120.00</Amount>
+        </Item>
+        <Item>
+            <ItemName>Wheat Flour</ItemName>
+            <Quantity>1</Quantity>
+            <Rate>45.00</Rate>
+            <Amount>45.00</Amount>
+        </Item>
+        <Item>
+            <ItemName>Sugar</ItemName>
+            <Quantity>1</Quantity>
+            <Rate>42.00</Rate>
+            <Amount>42.00</Amount>
+        </Item>
+        <Item>
+            <ItemName>Cooking Oil</ItemName>
+            <Quantity>1</Quantity>
+            <Rate>155.00</Rate>
+            <Amount>155.00</Amount>
+        </Item>
+    </Items>
+
+    <Summary>
+        <TotalItems>5</TotalItems>
+        <SubTotal>362.00</SubTotal>
+        <Discount>20.00</Discount>
+        <GST>15.26</GST>
+        <NetAmount>357.26</NetAmount>
+    </Summary>
+
+    <Payment>
+        <PaymentMode>Cash / UPI / Card</PaymentMode>
+    </Payment>
+
+    <Footer>
+        <Note1>Goods once sold will not be taken back</Note1>
+        <Note2>Please check items before leaving the counter</Note2>
+        <ThankYou>Thank You for Shopping With Us!</ThankYou>
+    </Footer>
+
+</Invoice>

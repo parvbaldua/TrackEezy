@@ -1,0 +1,110 @@
+/* Shared Component Styles */
+
+/* Card */
+.card {
+    background-color: hsl(var(--bg-card));
+    border-radius: var(--radius-md);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: transform var(--transition-fast);
+}
+
+/* Base Button */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: none;
+    font-size: 1rem;
+    text-decoration: none;
+    gap: 8px;
+    /* For icons */
+}
+
+.btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+/* Button Variants */
+.primary {
+    background-color: hsl(var(--primary));
+    color: white;
+    /* Text on green */
+    box-shadow: var(--shadow-glow);
+}
+
+.primary:hover {
+    background-color: hsl(var(--primary-hover));
+}
+
+.secondary {
+    background-color: hsl(var(--bg-input));
+    color: hsl(var(--text-primary));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.secondary:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.danger {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: hsl(var(--danger));
+}
+
+.danger:hover {
+    background-color: rgba(239, 68, 68, 0.2);
+}
+
+.ghost {
+    background-color: transparent;
+    color: hsl(var(--text-muted));
+}
+
+.ghost:hover {
+    color: hsl(var(--text-primary));
+}
+
+/* Input */
+.inputContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.inputLabel {
+    font-size: 0.75rem;
+    color: hsl(var(--text-secondary));
+    margin-left: 4px;
+}
+
+.input {
+    width: 100%;
+    background-color: hsl(var(--bg-input));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    transition: all var(--transition-fast);
+    box-sizing: border-box;
+}
+
+.input:focus {
+    outline: none;
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+}

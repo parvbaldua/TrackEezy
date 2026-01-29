@@ -1,0 +1,224 @@
+@import url('https://fonts.cdnfonts.com/css/open-sauce-one');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    /* HSL Color System for Premium Feel */
+
+    /* Backgrounds */
+    --bg-main: 220 15% 10%;
+    /* Dark Charcoal */
+    --bg-card: 220 15% 16%;
+    /* Soft Dark Grey */
+    --bg-input: 220 15% 20%;
+    /* Slightly lighter for inputs */
+
+    /* Text */
+    --text-primary: 0 0% 100%;
+    --text-secondary: 215 20% 65%;
+    /* Muted for subtext */
+    --text-muted: 215 20% 45%;
+
+    /* Accents */
+    --primary: 160 84% 39%;
+    /* Muted Neon Green/Teal */
+    --primary-hover: 160 84% 30%;
+    --accent: 180 100% 35%;
+    /* Cyan pop */
+    --danger: 0 84% 60%;
+    /* Soft Red for alerts/delete */
+
+    /* Spacing & Radius */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-full: 9999px;
+
+    /* Shadows */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --shadow-glow: 0 0 15px rgba(16, 185, 129, 0.2);
+    /* Subtle Green Glow */
+
+    /* Transitions */
+    --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+    margin: 0;
+    /* Remove default browser margin */
+    background-color: hsl(var(--bg-main));
+    color: hsl(var(--text-primary));
+    font-family: 'Open Sauce One', sans-serif;
+    height: 100dvh;
+    /* Use viewport height */
+    width: 100vw;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 0;
+    /* Desktop Background Pattern */
+    background-image: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.05), transparent 50%);
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: hsl(var(--bg-input));
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--text-muted));
+    border-radius: 10px;
+}
+
+/* Typography Utilities */
+h1,
+h2,
+h3,
+h4 {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.text-gradient {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* ==========================================================================
+   PRINT STYLES (EXACT REPLICA OF BILL.HTML)
+   ========================================================================== */
+@media print {
+    @page {
+        margin: 0;
+        size: auto;
+    }
+
+    /* 
+     VISIBILITY STRATEGY: 
+     We cannot use "display: none" on body or parents because it kills the React Root.
+     We must use "visibility: hidden" to hide everything, 
+     then "visibility: visible" on the target to show it.
+  */
+
+    body {
+        background-color: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Hide everything by default using visibility */
+    body * {
+        visibility: hidden;
+    }
+
+    /* But allow the print container to be visible */
+    .print-visible,
+    .print-visible * {
+        visibility: visible !important;
+    }
+
+    /* Reset layout for the visible part */
+    .print-visible {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        display: block !important;
+        z-index: 99999 !important;
+    }
+
+    /* -------- REPLICATED STYLES FROM BILL.HTML -------- */
+    .invoice-box {
+        max-width: 800px;
+        /* Or 100% if POS */
+        width: 100%;
+        margin: auto;
+        padding: 30px;
+        border: 1px solid #eee;
+        /* Light border or none */
+        box-shadow: none;
+        background-color: white;
+        font-size: 16px;
+        line-height: 24px;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        color: #555;
+    }
+
+    .invoice-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+    }
+
+    .shop-details h2 {
+        margin: 0;
+        color: #333;
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .invoice-meta {
+        text-align: right;
+    }
+
+    table {
+        width: 100%;
+        line-height: inherit;
+        text-align: left;
+        border-collapse: collapse;
+    }
+
+    table th {
+        background-color: #f8f9fa !important;
+        /* Force background print */
+        -webkit-print-color-adjust: exact;
+        color: #333;
+        font-weight: bold;
+        padding: 10px;
+        border-bottom: 2px solid #ddd;
+    }
+
+    table td {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    /* Utilities */
+    .text-right {
+        text-align: right;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    /* Totals */
+    .total-row td {
+        font-weight: bold;
+        border-top: 2px solid #333;
+        border-bottom: none;
+        color: #333;
+    }
+
+    .subtotal-row td {
+        border-bottom: none;
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+}

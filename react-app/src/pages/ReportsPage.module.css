@@ -1,0 +1,142 @@
+/* Reports Styles */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    /* Increased gap */
+    padding-bottom: 80px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+}
+
+/* Charts */
+.chartCard {
+    height: 450px;
+    /* Taller */
+    display: flex;
+    flex-direction: column;
+    padding: 32px !important;
+    /* Larger padding */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.chartHeader {
+    margin-bottom: 24px;
+}
+
+.chartTitle {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+}
+
+.chartSubtitle {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: hsl(var(--primary));
+    margin-top: 4px;
+}
+
+.chartContainer {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+}
+
+/* Best Sellers */
+.bestSellersTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.bestSellerList {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.bestSellerItem {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.bestSellerRow {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1rem;
+    color: hsl(var(--text-secondary));
+}
+
+.bestSellerValue {
+    font-weight: 600;
+    color: white;
+}
+
+.progressBarContainer {
+    height: 8px;
+    /* Thicker */
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.progressBarFill {
+    height: 100%;
+    background-color: hsl(var(--primary));
+    border-radius: 99px;
+}
+
+/* Stats Grid */
+.statsGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    width: 100%;
+}
+
+.statCard {
+    padding: 32px !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.statCardAlternate {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.statLabel {
+    font-size: 1rem;
+    color: hsl(var(--text-secondary));
+    margin-bottom: 8px;
+}
+
+.statValue {
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.statValueWhite {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: white;
+}
+
+.dangerText {
+    color: hsl(var(--danger));
+}

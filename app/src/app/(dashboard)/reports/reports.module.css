@@ -1,0 +1,153 @@
+/* Reports Screen Styles */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    animation: fadeIn 0.4s ease-out;
+    padding-bottom: 80px;
+    height: 100%;
+    overflow-y: auto;
+    /* Independent Scroll for Reports */
+    scrollbar-width: thin;
+    padding-left: 25px;
+    /* Added per user request */
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+}
+
+/* Chart Card */
+.chartCard {
+    padding: 0 !important;
+    overflow: hidden;
+    height: 280px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chartHeader {
+    padding: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.chartTitle {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.chartSubtitle {
+    font-size: 0.75rem;
+    color: hsl(var(--text-secondary));
+    margin-top: 2px;
+}
+
+.chartContainer {
+    flex: 1;
+    width: 100%;
+    padding: 16px 8px 8px 0;
+    /* Right padding for chart overflow adjustment */
+}
+
+/* Best Sellers */
+.bestSellersTitle {
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.bestSellerList {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.bestSellerItem {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.bestSellerRow {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+}
+
+.bestSellerValue {
+    font-weight: 700;
+    color: hsl(var(--text-primary));
+}
+
+.progressBarContainer {
+    height: 8px;
+    width: 100%;
+    background-color: hsl(var(--bg-input));
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.progressBarFill {
+    height: 100%;
+    background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+    border-radius: var(--radius-full);
+}
+
+/* Stats Grid */
+.statsGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.statCard {
+    padding: 16px !important;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.statCardAlternate {
+    background-color: hsl(var(--bg-input)) !important;
+}
+
+.statLabel {
+    font-size: 0.75rem;
+    color: hsl(var(--text-secondary));
+}
+
+.statValue {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: hsl(var(--primary));
+}
+
+.statValueWhite {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: white;
+}
+
+.dangerText {
+    color: hsl(var(--danger));
+}
+
+@media (max-width: 1024px) {
+    .container {
+        padding-left: 0;
+        /* Reset for Mobile */
+    }
+}

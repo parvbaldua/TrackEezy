@@ -1,0 +1,126 @@
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* Replaces width: 100vw; height: 100vh; to prevent overflow with padding */
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    padding: 1rem;
+}
+
+.modal {
+    background: #1e1e24;
+    /* Dark gray surface */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    /* Prevent overflowing viewport height */
+    overflow-y: auto;
+    /* Enable scrolling if content is too tall */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s ease-out;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+}
+
+.closeBtn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.closeBtn:hover {
+    color: white;
+}
+
+.content {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.modalLabel {
+    display: block;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+    /* Increased from 12px for better separation */
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.modalInput {
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    /* Reset from red */
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    padding: 8px 12px !important;
+    border-radius: 8px !important;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.modalInput:focus {
+    border-color: #10b981 !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.modalInput::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 640px) {
+    .modal {
+        width: 100%;
+        /* Fits within overlay padding */
+        max-height: 85vh;
+    }
+
+    .content {
+        padding: 16px;
+    }
+
+    .modalLabel {
+        margin-bottom: 12px;
+        /* Slightly tighter checking for mobile labels if needed, or keep 20 */
+    }
+}

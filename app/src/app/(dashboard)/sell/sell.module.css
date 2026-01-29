@@ -1,0 +1,249 @@
+/* Sell Screen Styles */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    /* On mobile, we might want full height minus nav. 
+     On desktop, we have Sidebar, so 100vh minus padding is handled by dashboard layout.
+     But we explicitly set height here to manage scrolling internal areas. 
+  */
+    height: calc(100vh - 140px);
+    position: relative;
+}
+
+.header {
+    margin-bottom: 16px;
+}
+
+.title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+/* Search Area */
+.searchContainer {
+    position: relative;
+    z-index: 20;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: hsl(var(--text-muted));
+    pointer-events: none;
+}
+
+.searchInput {
+    padding-left: 40px !important;
+    background-color: hsl(var(--bg-card)) !important;
+}
+
+.suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: hsl(var(--bg-card));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 4px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.suggestionItem {
+    padding: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+}
+
+.suggestionItem:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.suggestionPrice {
+    color: hsl(var(--primary));
+    font-weight: 500;
+}
+
+/* Cart List */
+.cartList {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: hsl(var(--text-muted));
+    opacity: 0.5;
+}
+
+.cartItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px !important;
+}
+
+.cartItemInfo {
+    flex: 1;
+}
+
+.itemName {
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.itemPrice {
+    font-size: 0.75rem;
+    color: hsl(var(--text-secondary));
+}
+
+.cartControls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.qtyControl {
+    display: flex;
+    align-items: center;
+    background-color: hsl(var(--bg-input));
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.qtyBtn {
+    padding: 4px 8px;
+    border: none;
+    background: transparent;
+    color: white;
+    cursor: pointer;
+}
+
+.qtyBtn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.qtyValue {
+    font-size: 0.875rem;
+    padding: 0 4px;
+    min-width: 24px;
+    text-align: center;
+}
+
+.itemTotal {
+    font-weight: 700;
+    width: 48px;
+    text-align: right;
+    font-size: 0.9rem;
+}
+
+.deleteBtn {
+    color: hsl(var(--danger));
+    opacity: 0.7;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.deleteBtn:hover {
+    opacity: 1;
+}
+
+/* Footer / Checkout */
+.footer {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: hsl(var(--bg-main));
+}
+
+.totalRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 16px;
+}
+
+.totalLabel {
+    color: hsl(var(--text-secondary));
+}
+
+.totalValue {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: hsl(var(--primary));
+}
+
+.checkoutBtn {
+    width: 100%;
+    padding: 16px !important;
+    font-size: 1.125rem !important;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+/* DESKTOP SPLIT VIEW */
+@media (min-width: 1024px) {
+    .container {
+        height: 100%;
+        /* Fill container */
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        /* Product Browser | Cart Panel */
+        gap: 32px;
+        max-width: 1400px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    .header {
+        /* Header spans full width or sits in left column? Let's keep in left */
+        grid-column: 1 / 2;
+        max-width: 600px;
+    }
+
+    /* We might need a product grid on the left for desktop instead of just search */
+    /* For now, let's keep the search concept but maybe add a visible grid of common items */
+
+    .cartPanel {
+        /* New wrapper for cart side */
+        grid-column: 2 / 3;
+        grid-row: 1 / 3;
+        background-color: hsl(var(--bg-card));
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .cartList {
+        /* Override for desktop panel if needed, otherwise inherit */
+        flex: 1;
+        /* Ensure it takes available space in panel */
+    }
+
+    .footer {
+        background-color: transparent;
+        /* Remove opaque bg in panel */
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+}
