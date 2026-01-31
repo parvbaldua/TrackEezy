@@ -19,66 +19,44 @@ const SALES_DATA = [
 ];
 
 export default function ReportsPage() {
-    const { sheetUrl } = useApp();
+    const { inventory, sheetUrl } = useApp();
     const [stats, setStats] = useState({
         totalValue: 0,
         lowStockCount: 0,
         topItems: [] as any[]
     });
-    const [loading, setLoading] = useState(false);
-
-    const fetchStats = async () => {
-        if (!sheetUrl) return;
-        setLoading(true);
-        try {
-            const res = await fetch('/api/sync', {
-                method: 'POST',
-                body: JSON.stringify({ sheetUrl, action: 'FETCH' })
-            });
-            const data = await res.json();
-            if (data.success && data.rows) {
-                let val = 0;
-                let low = 0;
-                // Quick top items logic (Mocking "Top Selling" with "Highest Stock" for now or just first few)
-                // Ideally we need a 'Sales' sheet.
-                const items = data.rows.map((row: any[]) => ({
-                    name: row[0],
-                    qty: parseInt(row[2]) || 0,
-                    price: parseFloat(row[3]) || 0
-                }));
-
-                items.forEach((item: any) => {
-                    val += (item.qty * item.price);
-                    if (item.qty < 10) low += 1;
-                });
-
-                // Sort by value (Price * Qty) as a proxy for "valuable" inventory for now
-                const top = items.sort((a: any, b: any) => (b.qty * b.price) - (a.qty * a.price)).slice(0, 3);
-
-                setStats({
-                    totalValue: val,
-                    lowStockCount: low,
-                    topItems: top
-                });
-            }
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    // const [loading, setLoading] = useState(false); // No longer needed as we use context data
 
     useEffect(() => {
-        fetchStats();
-    }, [sheetUrl]);
+        if (!inventory || inventory.length === 0) return;
+
+        let val = 0;
+        let low = 0;
+
+        inventory.forEach((item: any) => {
+            // Ensure numbers
+            const q = parseFloat(item.qty) || 0;
+            const p = parseFloat(item.price) || 0;
+            val += (q * p);
+            if (q < 10) low += 1;
+        });
+
+        const top = [...inventory]
+            .sort((a: any, b: any) => ((b.qty * b.price) - (a.qty * a.price)))
+            .slice(0, 5);
+
+        setStats({
+            totalValue: val,
+            lowStockCount: low,
+            topItems: top
+        });
+    }, [inventory]);
 
     return (
         <div className={styles.container}>
             <div className="flex justify-between items-center mb-6">
                 <h1 className={styles.title}>Reports & Insights</h1>
-                <Button variant="ghost" onClick={fetchStats} className="!p-2 text-white/50 hover:text-white">
-                    <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
-                </Button>
+                {/* Auto-synced via Context */}
             </div>
 
             {/* Revenue Chart - Still Mocked until Sales implemented */}

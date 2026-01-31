@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Package, ScanLine, FileBarChart, User } from "lucide-react";
+import { Home, Package, Tags, FileBarChart, User } from "lucide-react";
 import styles from "./Sidebar.module.css";
 import clsx from "clsx";
 
@@ -10,7 +10,7 @@ export default function Sidebar() {
     const navItems = [
         { name: "Dashboard", href: "/home", icon: Home },
         { name: "Inventory", href: "/inventory", icon: Package },
-        { name: "Sell / POS", href: "/billing", icon: ScanLine },
+        { name: "Sell / POS", href: "/sell", icon: Tags },
         { name: "Reports", href: "/reports", icon: FileBarChart },
     ];
 

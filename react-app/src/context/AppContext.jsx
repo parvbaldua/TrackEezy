@@ -67,10 +67,14 @@ export function AppProvider({ children }) {
                     id: i,
                     name: row[0],
                     sku: row[1],
-                    qty: parseInt(row[2]) || 0,
-                    price: parseFloat(row[3]) || 0,
-                    low: (parseInt(row[2]) || 0) < 10,
-                    category: row[4] || "General"
+                    qty: parseFloat(String(row[2] || "0").replace(/,/g, '')) || 0,
+                    price: parseFloat(String(row[3] || "0").replace(/,/g, '')) || 0,
+                    // Fix: Check if Display Qty < 10
+                    low: (parseFloat(String(row[2] || "0").replace(/,/g, '')) || 0) < (10 * (parseFloat(String(row[6] || "1000").replace(/,/g, '')) || 1000)),
+                    // New Unit Fields
+                    baseUnit: row[4] || "gram",
+                    displayUnit: row[5] || "kilogram",
+                    conversionFactor: parseFloat(String(row[6] || "1000").replace(/,/g, '')) || 1000
                 }));
                 console.log("AppContext: Parsed Items:", items.length);
                 setInventory(items.reverse());
@@ -103,6 +107,10 @@ export function AppProvider({ children }) {
         setInventory(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item));
     };
 
+    const removeInventoryItem = (itemId) => {
+        setInventory(prev => prev.filter(item => item.id !== itemId));
+    };
+
     // Helper to get ID
     const getSheetId = (url) => {
         if (!url) return "";
@@ -132,7 +140,7 @@ export function AppProvider({ children }) {
     return (
         <AppContext.Provider value={{
             shopName, shopAddress, shopPhone, shopGstin,
-            sheetUrl, isConfigured, saveConfig, loading, inventory, fetchInventory, addInventoryItem, updateInventoryItem, lastError, getSheetId
+            sheetUrl, isConfigured, saveConfig, loading, inventory, fetchInventory, addInventoryItem, updateInventoryItem, removeInventoryItem, lastError, getSheetId
         }}>
             {children}
         </AppContext.Provider>

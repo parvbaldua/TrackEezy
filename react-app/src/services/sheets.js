@@ -9,7 +9,7 @@ export const GoogleSheetsService = {
     async getInventory(token, spreadsheetId) {
         try {
             console.log("Fetching inventory...", { spreadsheetId, token: token?.slice(0, 10) + "..." });
-            const url = `${BASE_URL}/${spreadsheetId}/values/A2:E`;
+            const url = `${BASE_URL}/${spreadsheetId}/values/A2:G`;
             const response = await fetch(url, {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -36,10 +36,62 @@ export const GoogleSheetsService = {
     },
 
     /**
-     * Append a new row to the sheet
+     * Create a new Google Sheet automatically
      */
+    async createInventorySheet(token, shopName) {
+        try {
+            const url = `${BASE_URL}`;
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    properties: {
+                        title: `${shopName || "My Shop"} - Inventory (TrackEezy)`
+                    },
+                    sheets: [
+                        {
+                            properties: {
+                                title: "Inventory",
+                                gridProperties: {
+                                    frozenRowCount: 1
+                                }
+                            }
+                        },
+                        {
+                            properties: {
+                                title: "Sales",
+                                gridProperties: {
+                                    frozenRowCount: 1
+                                }
+                            }
+                        }
+                    ]
+                }),
+            });
+
+            const data = await response.json();
+            if (data.error) throw new Error(data.error.message);
+
+            const spreadsheetId = data.spreadsheetId;
+
+            // Initialize Headers for Inventory
+            await this.initializeSheet(token, spreadsheetId);
+
+            // Initialize Headers for Sales
+            await this.initializeSalesSheet(token, spreadsheetId);
+
+            return data.spreadsheetUrl; // Returns the full URL
+        } catch (error) {
+            console.error("Error creating sheet:", error);
+            throw error;
+        }
+    },
     async addStock(token, spreadsheetId, rowData) {
         try {
+            // rowData now has 7 items
             const url = `${BASE_URL}/${spreadsheetId}/values/A1:append?valueInputOption=USER_ENTERED`;
             const response = await fetch(url, {
                 method: "POST",
@@ -66,7 +118,7 @@ export const GoogleSheetsService = {
     async initializeSheet(token, spreadsheetId) {
         try {
             // Check if headers exist in A1:E1
-            const checkUrl = `${BASE_URL}/${spreadsheetId}/values/A1:E1`;
+            const checkUrl = `${BASE_URL}/${spreadsheetId}/values/A1:G1`;
             const checkRes = await fetch(checkUrl, {
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -75,7 +127,7 @@ export const GoogleSheetsService = {
 
             // If first row is empty, write headers
             if (rows.length === 0) {
-                const updateUrl = `${BASE_URL}/${spreadsheetId}/values/A1:E1?valueInputOption=USER_ENTERED`;
+                const updateUrl = `${BASE_URL}/${spreadsheetId}/values/A1:G1?valueInputOption=USER_ENTERED`;
                 await fetch(updateUrl, {
                     method: "PUT",
                     headers: {
@@ -83,7 +135,7 @@ export const GoogleSheetsService = {
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        values: [["Product Name", "SKU", "Quantity", "Price", "Category"]],
+                        values: [["Product Name", "SKU", "Quantity", "Price", "Base Unit", "Display Unit", "Conversion Factor"]],
                     }),
                 });
             }
@@ -94,7 +146,7 @@ export const GoogleSheetsService = {
 
     /**
      * Update an item's details
-     * Finds the row by originalName and updates all columns
+     * Finds the row by originalName and updates all columns (A:G)
      */
     async updateItem(token, spreadsheetId, originalName, itemData) {
         try {
@@ -116,8 +168,8 @@ export const GoogleSheetsService = {
             // Row index is 0-based. Sheet rows are 1-based.
             const sheetRow = rowIndex + 1; // e.g. Index 0 is Row 1 (Header), Index 1 is Row 2
 
-            // 3. Update the Row (Columns A:E)
-            const updateUrl = `${BASE_URL}/${spreadsheetId}/values/A${sheetRow}:E${sheetRow}?valueInputOption=USER_ENTERED`;
+            // 3. Update the Row (Columns A:G)
+            const updateUrl = `${BASE_URL}/${spreadsheetId}/values/A${sheetRow}:G${sheetRow}?valueInputOption=USER_ENTERED`;
             const updateRes = await fetch(updateUrl, {
                 method: "PUT",
                 headers: {
@@ -130,7 +182,9 @@ export const GoogleSheetsService = {
                         itemData.sku,
                         itemData.qty,
                         itemData.price,
-                        itemData.category
+                        itemData.baseUnit,
+                        itemData.displayUnit,
+                        itemData.conversionFactor
                     ]],
                 }),
             });
@@ -146,14 +200,74 @@ export const GoogleSheetsService = {
     },
 
     /**
+     * Delete an item from inventory
+     * Finds row by name and deletes it
+     */
+    async deleteItem(token, spreadsheetId, itemName) {
+        try {
+            // 1. Get sheet ID (needed for delete request)
+            const metaUrl = `${BASE_URL}/${spreadsheetId}`;
+            const metaRes = await fetch(metaUrl, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            const metaData = await metaRes.json();
+            const sheetId = metaData.sheets?.[0]?.properties?.sheetId || 0;
+
+            // 2. Find row index
+            const readUrl = `${BASE_URL}/${spreadsheetId}/values/A:A`;
+            const readRes = await fetch(readUrl, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            const readData = await readRes.json();
+            const rows = readData.values || [];
+
+            const rowIndex = rows.findIndex(
+                (row) => row[0]?.toString().toLowerCase().trim() === itemName.toLowerCase().trim()
+            );
+
+            if (rowIndex === -1) throw new Error("Item not found");
+
+            // 3. Delete row using batchUpdate
+            const deleteUrl = `${BASE_URL}/${spreadsheetId}:batchUpdate`;
+            const deleteRes = await fetch(deleteUrl, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    requests: [{
+                        deleteDimension: {
+                            range: {
+                                sheetId: sheetId,
+                                dimension: "ROWS",
+                                startIndex: rowIndex,
+                                endIndex: rowIndex + 1
+                            }
+                        }
+                    }]
+                }),
+            });
+
+            const deleteData = await deleteRes.json();
+            if (deleteData.error) throw new Error(deleteData.error.message);
+            return true;
+
+        } catch (error) {
+            console.error("Error deleting item:", error);
+            throw error;
+        }
+    },
+
+    /**
      * Batch update stock for sold items
      * items: { name: string, qty: number }[]
      */
     async deductStock(token, spreadsheetId, soldItems) {
         try {
             // 1. Fetch current data to find row indices
-            // Reading Name(A), SKU(B), Qty(C)
-            const readUrl = `${BASE_URL}/${spreadsheetId}/values/A2:C`;
+            // Reading Name(A) to Factor(G)
+            const readUrl = `${BASE_URL}/${spreadsheetId}/values/A2:G`;
             const readRes = await fetch(readUrl, {
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -172,9 +286,16 @@ export const GoogleSheetsService = {
                 );
 
                 if (rowIndex !== -1) {
-                    const currentQty = parseInt(rows[rowIndex][2] || "0");
-                    const newQty = Math.max(0, currentQty - item.qty);
-                    // Row index is 0-based from the range start.
+                    const row = rows[rowIndex];
+                    const currentQty = parseFloat(row[2] || "0"); // Base Unit Qty
+                    const conversionFactor = parseFloat(row[6] || "1"); // Factor
+
+                    // Deduction in Base Units = Sold Qty (Display) * Factor
+                    const deductionBase = item.qty * conversionFactor;
+
+                    const newQty = Math.max(0, currentQty - deductionBase);
+
+                    // Row index is 0-based from the range start (A2).
                     // Range start is A2, so actual sheet row is rowIndex + 2.
                     const sheetRow = rowIndex + 2;
 

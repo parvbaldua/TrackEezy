@@ -128,19 +128,27 @@ export default function ProfilePage() {
                         </div>
                     ) : (
                         <div className="flex gap-2">
-                            <ConnectionInput onConnect={async (url) => {
-                                if (!url) return;
+                            <ConnectionInput onConnect={async (urlOrCommand) => {
+                                if (!urlOrCommand) return;
                                 try {
-                                    // Use Client Side Service to Init
                                     if (accessToken) {
+                                        let finalUrl = urlOrCommand;
+
+                                        // Auto Create Logic
+                                        if (urlOrCommand === 'CREATE_NEW') {
+                                            const newUrl = await GoogleSheetsService.createInventorySheet(accessToken, shopName);
+                                            finalUrl = newUrl;
+                                        }
+
                                         // Extract ID
-                                        const parts = url.split("/d/");
+                                        const parts = finalUrl.split("/d/");
                                         const id = parts[1] ? parts[1].split('/')[0] : null;
                                         if (id) {
+                                            // Initialize (Safety Check)
                                             await GoogleSheetsService.initializeSheet(accessToken, id);
-                                            // Save only after verify
-                                            saveConfig(shopName || "My Shop", url, shopAddress, shopPhone, shopGstin);
-                                            alert("Connected to Google Sheet successfully! 🚀");
+                                            // Save
+                                            saveConfig(shopName || "My Shop", finalUrl, shopAddress, shopPhone, shopGstin);
+                                            alert("Success! Your new Inventory Sheet is ready & connected. 🚀");
                                         } else {
                                             throw new Error("Invalid URL");
                                         }
@@ -149,7 +157,7 @@ export default function ProfilePage() {
                                     }
                                 } catch (err) {
                                     console.error(err);
-                                    alert("Could not connect. Ensure you are logged in and have Edit access.");
+                                    alert("Could not connect. Ensure you are logged in.");
                                 }
                             }} />
                         </div>
@@ -229,6 +237,32 @@ function ConnectionInput({ onConnect }) {
             <p className="text-xs text-[hsl(var(--text-muted))]">
                 *Create a new sheet with columns: Name, SKU, Qty, Price, Category
             </p>
+
+            <div className="relative flex py-2 items-center">
+                <div className="flex-grow border-t border-[rgba(255,255,255,0.1)]"></div>
+                <span className="flex-shrink-0 mx-4 text-xs text-[hsl(var(--text-muted))]">OR</span>
+                <div className="flex-grow border-t border-[rgba(255,255,255,0.1)]"></div>
+            </div>
+
+            <Button
+                variant="secondary"
+                className="w-full bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30"
+                onClick={async () => {
+                    setConnecting(true);
+                    try {
+                        // We use a temporary token search or pass it from parent.
+                        // Ideally onConnect should handle this, but let's assume we can trigger a create callback
+                        // Modifying parent to accept 'CREATE' command
+                        await onConnect('CREATE_NEW');
+                    } catch (e) {
+                        console.error(e);
+                    }
+                    setConnecting(false);
+                }}
+                disabled={connecting}
+            >
+                {connecting ? "Creating..." : "✨ Create Sheet For Me"}
+            </Button>
         </div>
     );
 }

@@ -5,6 +5,7 @@ import { useApp } from "@/context/AppContext";
 import styles from "./billing.module.css";
 import { Input, Button } from "@/components/ui/Shared";
 import { Search, ShoppingCart, Plus, Minus, Trash2, Printer, Share2, ChevronUp, ChevronDown } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import clsx from "clsx";
 
 interface CartItem {
@@ -12,7 +13,10 @@ interface CartItem {
     name: string;
     price: number;
     qty: number;
-    maxQty: number;
+    maxQty: number; // This is Base Stock
+    displayUnit: string;
+    baseUnit: string;
+    conversionFactor: number;
 }
 
 export default function BillingPage() {
@@ -38,18 +42,36 @@ export default function BillingPage() {
     const addToCart = (product: any) => {
         setCart(prev => {
             const existing = prev.find(item => item.id === product.id);
+            const factor = product.conversionFactor || 1;
+            const baseStock = product.qty; // Inventory stores Base Qty
+
             if (existing) {
-                if (existing.qty >= product.qty) return prev; // Stock limit
+                // Check if adding 1 more Display Unit exceeds Base Stock
+                // (Existing Display Qty + 1) * Factor <= Base Stock
+                if ((existing.qty + 1) * factor > baseStock) {
+                    alert(`Not enough stock! Available: ${baseStock} ${product.baseUnit}`);
+                    return prev;
+                }
                 return prev.map(item =>
                     item.id === product.id ? { ...item, qty: item.qty + 1 } : item
                 );
             }
+
+            // Check initial add
+            if (1 * factor > baseStock) {
+                alert(`Not enough stock! Available: ${baseStock} ${product.baseUnit}`);
+                return prev;
+            }
+
             return [...prev, {
                 id: product.id,
                 name: product.name,
                 price: typeof product.price === 'string' ? parseFloat(product.price) : product.price,
-                qty: 1,
-                maxQty: typeof product.qty === 'string' ? parseInt(product.qty) : product.qty
+                qty: 1, // Display Unit Qty
+                maxQty: typeof product.qty === 'string' ? parseInt(product.qty) : product.qty,
+                displayUnit: product.displayUnit || 'piece',
+                baseUnit: product.baseUnit || 'piece',
+                conversionFactor: factor
             }];
         });
     };
@@ -59,7 +81,13 @@ export default function BillingPage() {
             if (item.id === id) {
                 const newQty = item.qty + delta;
                 if (newQty < 1) return item; // Don't remove via minus, let trash do it
-                if (newQty > item.maxQty) return item; // Max stock constraint
+
+                // Limit Check
+                // New Display Qty * Factor <= Base Stock
+                if (newQty * item.conversionFactor > item.maxQty) {
+                    alert(`Max stock reached!`);
+                    return item;
+                }
                 return { ...item, qty: newQty };
             }
             return item;
@@ -97,7 +125,7 @@ export default function BillingPage() {
         cart.forEach(item => {
             // Simple alignment logic
             const lineTotal = (item.price * item.qty).toFixed(2);
-            message += `${item.name} (x${item.qty}) - ₹${lineTotal}\n`;
+            message += `${item.name} (${item.qty} ${item.displayUnit}) - ₹${lineTotal}\n`;
         });
 
         message += `------------------------------\n`;
@@ -244,7 +272,7 @@ export default function BillingPage() {
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-primary font-semibold">₹{product.price}</p>
-                                                <p className="text-[10px] text-white/40">Stock: {product.qty}</p>
+                                                <p className="text-[10px] text-white/40">Stock: {product.qty} {product.baseUnit}</p>
                                             </div>
                                         </div>
                                     ))
@@ -267,10 +295,10 @@ export default function BillingPage() {
                                 <span className={styles.productPrice}>₹{product.price}</span>
                                 {cart.find(item => item.id === product.id) ? (
                                     <span className="text-[10px] text-green-400 font-bold bg-green-900/30 px-2 py-0.5 rounded-full">
-                                        Added ( {cart.find(c => c.id === product.id)?.qty} )
+                                        Added ( {cart.find(c => c.id === product.id)?.qty} {product.displayUnit})
                                     </span>
                                 ) : (
-                                    <span className={styles.productStock}>Stock: {product.qty}</span>
+                                    <span className={styles.productStock}>Stock: {product.qty} {product.baseUnit}</span>
                                 )}
                             </div>
                         </div>
@@ -319,7 +347,7 @@ export default function BillingPage() {
                             <div key={item.id} className={styles.cartItem}>
                                 <div className={styles.cartItemInfo}>
                                     <p className={styles.cartItemName}>{item.name}</p>
-                                    <p className={styles.cartItemPrice}>₹{item.price} x {item.qty} = <span className="text-white">₹{item.price * item.qty}</span></p>
+                                    <p className={styles.cartItemPrice}>₹{item.price} x {item.qty} {item.displayUnit} = <span className="text-white">₹{item.price * item.qty}</span></p>
                                 </div>
                                 <div className={styles.cartControls}>
                                     <button className={styles.qtyBtn} onClick={() => updateQty(item.id, -1)}><Minus size={14} /></button>
@@ -389,6 +417,23 @@ export default function BillingPage() {
                             </p>
                         </div>
                     </div>
+                    {/* Digital Bill QR Code */}
+                    <div style={{ position: 'absolute', top: '20px', right: '20px', textAlign: 'center' }}>
+                        <QRCodeSVG
+                            value={typeof window !== 'undefined' ? `${window.location.origin}/invoice?data=${btoa(JSON.stringify({
+                                s: shopName,
+                                a: shopAddress,
+                                p: shopPhone,
+                                g: shopGstin,
+                                d: new Date().toISOString(),
+                                t: netAmount,
+                                i: cart.map(c => ({ n: c.name, q: c.qty, u: c.displayUnit, p: c.price }))
+                            }))}` : ""}
+                            size={100}
+                        />
+                        <p style={{ fontSize: '10px', marginTop: '5px' }}>Scan for Digital Bill</p>
+                    </div>
+
 
                     <table>
                         <thead>
@@ -403,7 +448,7 @@ export default function BillingPage() {
                             {cart.map(item => (
                                 <tr key={item.id}>
                                     <td>{item.name}</td>
-                                    <td className="text-center">{item.qty}</td>
+                                    <td className="text-center">{item.qty} {item.displayUnit}</td>
                                     <td className="text-right">{item.price.toFixed(2)}</td>
                                     <td className="text-right">{(item.price * item.qty).toFixed(2)}</td>
                                 </tr>

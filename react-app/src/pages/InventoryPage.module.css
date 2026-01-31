@@ -119,6 +119,14 @@
     border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+/* New Style for Low Stock Cards */
+.itemLow {
+    border: 1px solid rgba(239, 68, 68, 0.5) !important;
+    /* Red Border */
+    background-color: rgba(239, 68, 68, 0.1) !important;
+    /* Red Tint */
+}
+
 .itemCard:active {
     transform: scale(0.99);
 }

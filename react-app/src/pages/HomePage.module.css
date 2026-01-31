@@ -4,6 +4,8 @@
     display: flex;
     flex-direction: column;
     gap: 24px;
+    padding-bottom: 150px;
+    /* Added spacing for mobile nav */
     animation: fadeIn 0.5s ease-out;
     max-width: 1200px;
     /* Max width for large desktop */

@@ -117,12 +117,26 @@ export default function ReportsPage() {
         let low = 0;
 
         inventory.forEach((item) => {
-            val += (item.qty * item.price);
-            if (item.qty < 10) low += 1;
+            // Ensure numbers (safe parsing)
+            const q = parseFloat(String(item.qty || "0").replace(/,/g, '')) || 0;
+            const p = parseFloat(String(item.price || "0").replace(/,/g, '')) || 0;
+
+            val += (q * p);
+            if (item.low) low += 1; // Use the flags computed in AppContext for consistency
         });
 
         // Top Value items (Qty * Price)
-        const top = [...inventory].sort((a, b) => (b.qty * b.price) - (a.qty * a.price)).slice(0, 3);
+        const top = [...inventory].sort((a, b) => {
+            const qA = parseFloat(String(a.qty || "0").replace(/,/g, '')) || 0;
+            const pA = parseFloat(String(a.price || "0").replace(/,/g, '')) || 0;
+            const valA = qA * pA;
+
+            const qB = parseFloat(String(b.qty || "0").replace(/,/g, '')) || 0;
+            const pB = parseFloat(String(b.price || "0").replace(/,/g, '')) || 0;
+            const valB = qB * pB;
+
+            return valB - valA;
+        }).slice(0, 3);
 
         return {
             totalValue: val,

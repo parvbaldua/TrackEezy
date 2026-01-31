@@ -1,8 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import styles from "./BillingPage.module.css";
 import { Input, Button } from "../components/ui/Shared";
 import { Search, ShoppingCart, Plus, Minus, Trash2, Printer, Share2, ChevronUp, ChevronDown } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import clsx from "clsx";
 import { useAuth } from "../context/AuthProvider";
 import { GoogleSheetsService } from "../services/sheets";
@@ -15,6 +16,23 @@ export default function BillingPage() {
 
     const [cart, setCart] = useState([]);
     const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
+
+    // Persistence: Load Cart
+    useEffect(() => {
+        const saved = localStorage.getItem("cart_data");
+        if (saved) {
+            try {
+                setCart(JSON.parse(saved));
+            } catch (e) {
+                console.error("Failed to parse cart", e);
+            }
+        }
+    }, []);
+
+    // Persistence: Save Cart
+    useEffect(() => {
+        localStorage.setItem("cart_data", JSON.stringify(cart));
+    }, [cart]);
 
     // Filter Products
     const filteredProducts = useMemo(() => {
@@ -30,18 +48,36 @@ export default function BillingPage() {
     const addToCart = (product) => {
         setCart(prev => {
             const existing = prev.find(item => item.id === product.id);
+            const factor = product.conversionFactor || 1;
+            const baseStock = product.qty; // Inventory stores Base Qty
+
             if (existing) {
-                if (existing.qty >= product.qty) return prev; // Stock limit
+                // Check if adding 1 more Display Unit exceeds Base Stock
+                // (Existing Display Qty + 1) * Factor <= Base Stock
+                if ((existing.qty + 1) * factor > baseStock) {
+                    alert(`Not enough stock! Available: ${parseFloat((baseStock / factor).toFixed(2))} ${product.displayUnit}`);
+                    return prev;
+                }
                 return prev.map(item =>
                     item.id === product.id ? { ...item, qty: item.qty + 1 } : item
                 );
             }
+
+            // Check initial add
+            if (1 * factor > baseStock) {
+                alert(`Not enough stock! Available: ${parseFloat((baseStock / factor).toFixed(2))} ${product.displayUnit}`);
+                return prev;
+            }
+
             return [...prev, {
                 id: product.id,
                 name: product.name,
                 price: typeof product.price === 'string' ? parseFloat(product.price) : product.price,
-                qty: 1,
-                maxQty: typeof product.qty === 'string' ? parseInt(product.qty) : product.qty
+                qty: 1, // Display Unit Qty
+                maxQty: typeof product.qty === 'string' ? parseInt(product.qty) : product.qty,
+                displayUnit: product.displayUnit || 'piece',
+                baseUnit: product.baseUnit || 'piece',
+                conversionFactor: factor
             }];
         });
     };
@@ -51,8 +87,30 @@ export default function BillingPage() {
             if (item.id === id) {
                 const newQty = item.qty + delta;
                 if (newQty < 1) return item; // Don't remove via minus, let trash do it
-                if (newQty > item.maxQty) return item; // Max stock constraint
+
+                // Limit Check
+                // New Display Qty * Factor <= Base Stock
+                if (newQty * item.conversionFactor > item.maxQty) {
+                    alert(`Max stock reached!`);
+                    return item;
+                }
                 return { ...item, qty: newQty };
+            }
+            return item;
+        }));
+    };
+
+    // Set Cart Quantity Directly (for input field)
+    const setCartQty = (id, newQty) => {
+        const qty = parseInt(newQty) || 1;
+        if (qty < 1) return;
+        setCart(prev => prev.map(item => {
+            if (item.id === id) {
+                if (qty * item.conversionFactor > item.maxQty) {
+                    alert(`Max stock reached!`);
+                    return item;
+                }
+                return { ...item, qty };
             }
             return item;
         }));
@@ -89,7 +147,7 @@ export default function BillingPage() {
         cart.forEach(item => {
             // Simple alignment logic
             const lineTotal = (item.price * item.qty).toFixed(2);
-            message += `${item.name} (x${item.qty}) - ₹${lineTotal}\n`;
+            message += `${item.name} (${item.qty} ${item.displayUnit}) - ₹${lineTotal}\n`;
         });
 
         message += `------------------------------\n`;
@@ -165,6 +223,7 @@ export default function BillingPage() {
             if (!accessToken) {
                 alert("Sale Simulated! (Demo Mode active - Login to sync with Sheets)");
                 setCart([]);
+                localStorage.removeItem("cart_data");
                 return;
             }
 
@@ -186,6 +245,7 @@ export default function BillingPage() {
 
                 alert("Stock Updated Successfully!");
                 setCart([]); // Clear cart
+                localStorage.removeItem("cart_data");
 
                 // Refresh Inventory after a slight delay to allow Sheet calculation update
                 setTimeout(() => {
@@ -204,156 +264,171 @@ export default function BillingPage() {
 
     return (
         <div className={styles.container}>
-            {/* Left: Product Selection */}
-            <div className={styles.productSection}>
-                <div className={styles.searchRow}>
-                    <div className={styles.searchWrapper}>
-                        <Search className={styles.searchIcon} size={18} />
-                        <Input
-                            placeholder="Search products..."
-                            className={styles.searchInput}
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        // Auto-select first suggestion on Enter could be added here
-                        />
-
-                        {/* Search Suggestions Dropdown */}
-                        {searchTerm && (
-                            <div className="absolute top-full left-0 right-0 mt-2 bg-[#27272A] border border-white/10 rounded-lg shadow-xl z-[100] max-h-60 overflow-y-auto">
-                                {filteredProducts.length > 0 ? (
-                                    filteredProducts.map(product => (
-                                        <div
-                                            key={product.id}
-                                            className="p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 last:border-0 flex justify-between items-center"
-                                            onClick={() => {
-                                                addToCart(product);
-                                                setSearchTerm(""); // Clear after adding for fast POS flow
-                                            }}
-                                        >
-                                            <div>
-                                                <p className="font-medium text-white">{product.name}</p>
-                                                <p className="text-xs text-white/50">{product.sku}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-primary font-semibold">₹{product.price}</p>
-                                                <p className="text-[10px] text-white/40">Stock: {product.qty}</p>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="p-3 text-sm text-white/50 text-center">No products found</div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className={styles.productsGrid}>
-                    {filteredProducts.map(product => (
-                        <div key={product.id} className={styles.productCard} onClick={() => addToCart(product)}>
-                            <div>
-                                <h3 className={styles.productName}>{product.name}</h3>
-                                {(product.sku) && <p className="text-xs text-white/40">{product.sku}</p>}
-                            </div>
-                            <div className={styles.productMeta}>
-                                <span className={styles.productPrice}>₹{product.price}</span>
-                                {cart.find(item => item.id === product.id) ? (
-                                    <span className="text-[10px] text-green-400 font-bold bg-green-900/30 px-2 py-0.5 rounded-full">
-                                        Added ( {cart.find(c => c.id === product.id)?.qty} )
-                                    </span>
-                                ) : (
-                                    <span className={styles.productStock}>Stock: {product.qty}</span>
-                                )}
-                            </div>
-                        </div>
-                    ))}
+            <div className={styles.header}>
+                <div className="flex flex-col">
+                    <h1 className={styles.title}>Billing & POS</h1>
                 </div>
             </div>
 
-            {/* Right: Cart (Bill) */}
+            <div className={styles.contentWrapper}>
+                {/* Left: Product Selection */}
+                <div className={styles.productSection}>
+                    <div className={styles.searchRow}>
+                        <div className={styles.searchWrapper}>
+                            <Search className={styles.searchIcon} size={18} />
+                            <Input
+                                placeholder="Search products..."
+                                className={styles.searchInput}
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            // Auto-select first suggestion on Enter could be added here
+                            />
 
-            {/* Mobile Floating Bar (Only visible on mobile when cart has items and is closed) */}
-            <div className="lg:hidden">
-                {!isMobileCartOpen && totalItems > 0 && (
-                    <div className={styles.floatingCartBar} onClick={() => setIsMobileCartOpen(true)}>
-                        <div className="flex flex-col">
-                            <span className="text-xs font-medium text-white/80">{totalItems} Items</span>
-                            <span className="font-bold text-base">₹{totalAmount.toFixed(0)}</span>
-                        </div>
-                        <div className="flex items-center gap-2 font-semibold text-sm bg-black/20 px-3 py-1.5 rounded-full">
-                            View Bill <ChevronUp size={16} />
+                            {/* Search Suggestions Dropdown */}
+                            {searchTerm && (
+                                <div className="absolute top-full left-0 right-0 mt-2 bg-[#27272A] border border-white/10 rounded-lg shadow-xl z-[100] max-h-60 overflow-y-auto">
+                                    {filteredProducts.length > 0 ? (
+                                        filteredProducts.map(product => (
+                                            <div
+                                                key={product.id}
+                                                className="p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 last:border-0 flex justify-between items-center"
+                                                onClick={() => {
+                                                    addToCart(product);
+                                                    setSearchTerm(""); // Clear after adding for fast POS flow
+                                                }}
+                                            >
+                                                <div>
+                                                    <p className="font-medium text-white">{product.name}</p>
+                                                    <p className="text-xs text-white/50">{product.sku}</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-primary font-semibold">₹{product.price}</p>
+                                                    <p className="text-[10px] text-white/40">
+                                                        Stock: {parseFloat((product.qty / (product.conversionFactor || 1)).toFixed(2))} {product.displayUnit}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="p-3 text-sm text-white/50 text-center">No products found</div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
-                )}
-            </div>
 
-            <div className={clsx(styles.cartSection, isMobileCartOpen && styles.open)}>
-                <div className={styles.cartHeader}>
-                    <div className={styles.cartHeaderContent}>
-                        <ShoppingCart size={20} className="text-primary" />
-                        <span className={styles.cartTitle}>Current Bill</span>
-                        <span className="text-xs bg-white/10 px-2 py-0.5 rounded-full text-white/70">{totalItems} items</span>
-                    </div>
-                    {/* Mobile Close Button */}
-                    <div className="lg:hidden text-white hover:bg-white/10 p-2 rounded-full cursor-pointer" onClick={() => setIsMobileCartOpen(false)}>
-                        <ChevronDown size={24} />
+                    <div className={styles.productsGrid}>
+                        {filteredProducts.map(product => (
+                            <div key={product.id} className={styles.productCard} onClick={() => addToCart(product)}>
+                                <div>
+                                    <h3 className={styles.productName}>{product.name}</h3>
+                                    {(product.sku) && <p className="text-xs text-white/40">{product.sku}</p>}
+                                </div>
+                                <div className={styles.productMeta}>
+                                    <span className={styles.productPrice}>₹{product.price}</span>
+                                    {cart.find(item => item.id === product.id) ? (
+                                        <span className="text-[10px] text-green-400 font-bold bg-green-900/30 px-2 py-0.5 rounded-full">
+                                            Added ( {cart.find(c => c.id === product.id)?.qty} {product.displayUnit})
+                                        </span>
+                                    ) : (
+                                        <span className={styles.productStock}>
+                                            Stock: {parseFloat((product.qty / (product.conversionFactor || 1)).toFixed(2))} {product.displayUnit}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
-                <div className={styles.cartItems}>
-                    {cart.length === 0 ? (
-                        <div className={styles.emptyCart}>
-                            <ShoppingCart size={48} />
-                            <p>Cart is empty</p>
-                        </div>
-                    ) : (
-                        cart.map(item => (
-                            <div key={item.id} className={styles.cartItem}>
-                                <div className={styles.cartItemInfo}>
-                                    <p className={styles.cartItemName}>{item.name}</p>
-                                    <p className={styles.cartItemPrice}>₹{item.price} x {item.qty} = <span className="text-white">₹{item.price * item.qty}</span></p>
-                                </div>
-                                <div className={styles.cartControls}>
-                                    <button className={styles.qtyBtn} onClick={() => updateQty(item.id, -1)}><Minus size={14} /></button>
-                                    <span className={styles.qtyValue}>{item.qty}</span>
-                                    <button className={styles.qtyBtn} onClick={() => updateQty(item.id, 1)}><Plus size={14} /></button>
-                                    <button className={clsx(styles.qtyBtn, "!bg-red-500/20 !text-red-400 hover:!bg-red-500/30 ml-2")} onClick={() => removeFromCart(item.id)}>
-                                        <Trash2 size={14} />
-                                    </button>
-                                </div>
+                {/* Right: Cart (Bill) */}
+
+                {/* Mobile Floating Bar (Only visible on mobile when cart has items and is closed) */}
+                <div className="lg:hidden">
+                    {!isMobileCartOpen && totalItems > 0 && (
+                        <div className={styles.floatingCartBar} onClick={() => setIsMobileCartOpen(true)}>
+                            <div className="flex flex-col">
+                                <span className="text-xs font-medium text-white/80">{totalItems} Items</span>
+                                <span className="font-bold text-base">₹{totalAmount.toFixed(0)}</span>
                             </div>
-                        ))
+                            <div className="flex items-center gap-2 font-semibold text-sm bg-black/20 px-3 py-1.5 rounded-full">
+                                View Bill <ChevronUp size={16} />
+                            </div>
+                        </div>
                     )}
                 </div>
 
-                <div className={styles.billSummary}>
-
-                    <div className={styles.summaryRow}>
-                        <span>Subtotal</span>
-                        <span>₹{totalAmount.toFixed(2)}</span>
-                    </div>
-                    <div className={styles.summaryRow}>
-                        <span>Tax (18%)</span>
-                        <span>₹{gstAmount.toFixed(2)}</span>
-                    </div>
-                    <div className={styles.totalRow}>
-                        <span>Total</span>
-                        <span>₹{netAmount.toFixed(2)}</span>
+                <div className={clsx(styles.cartSection, isMobileCartOpen && styles.open)}>
+                    <div className={styles.cartHeader}>
+                        <div className={styles.cartHeaderContent}>
+                            <ShoppingCart size={20} className="text-primary" />
+                            <span className={styles.cartTitle}>Current Bill</span>
+                            <span className="text-xs bg-white/10 px-2 py-0.5 rounded-full text-white/70">{totalItems} items</span>
+                        </div>
+                        {/* Mobile Close Button */}
+                        <div className="lg:hidden text-white hover:bg-white/10 p-2 rounded-full cursor-pointer" onClick={() => setIsMobileCartOpen(false)}>
+                            <ChevronDown size={24} />
+                        </div>
                     </div>
 
-                    <div className={styles.actionButtons}>
-                        <Button variant="secondary" className="w-full" disabled={cart.length === 0} onClick={handlePrint}>
-                            <Printer size={18} /> Print
-                        </Button>
-                        <Button className="w-full !bg-[#25D366] hover:!bg-[#128C7E]" disabled={cart.length === 0} onClick={handleWhatsApp}>
-                            <Share2 size={18} /> WhatsApp
-                        </Button>
-                        <Button className="w-full border border-white/10 hover:bg-white/5 col-span-2 text-xs" disabled={cart.length === 0} onClick={handleShareImage}>
-                            Share Receipt Image
-                        </Button>
-                        <Button className="w-full !bg-blue-600 hover:!bg-blue-700 col-span-2 mt-2" disabled={cart.length === 0} onClick={processSale}>
-                            Complete Sale (Update Stock)
-                        </Button>
+                    <div className={styles.cartItems}>
+                        {cart.length === 0 ? (
+                            <div className={styles.emptyCart}>
+                                <ShoppingCart size={48} />
+                                <p>Cart is empty</p>
+                            </div>
+                        ) : (
+                            cart.map(item => (
+                                <div key={item.id} className={styles.cartItem}>
+                                    <div className={styles.cartItemInfo}>
+                                        <p className={styles.cartItemName}>{item.name} ({item.qty} {item.displayUnit})</p>
+                                        <p className={styles.cartItemPrice}>₹{item.price} x {item.qty} = <span className="text-white">₹{item.price * item.qty}</span></p>
+                                    </div>
+                                    <div className={styles.cartControls}>
+                                        <button className={styles.qtyBtn} onClick={() => updateQty(item.id, -1)}><Minus size={14} /></button>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            value={item.qty}
+                                            onChange={(e) => setCartQty(item.id, e.target.value)}
+                                            className="w-12 h-7 text-center bg-white/10 border border-white/10 rounded text-white text-sm"
+                                        />
+                                        <button className={styles.qtyBtn} onClick={() => updateQty(item.id, 1)}><Plus size={14} /></button>
+                                        <button className={clsx(styles.qtyBtn, "!bg-red-500/20 !text-red-400 hover:!bg-red-500/30 ml-2")} onClick={() => removeFromCart(item.id)}>
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+
+                    <div className={styles.billSummary}>
+
+                        <div className={styles.summaryRow}>
+                            <span>Subtotal</span>
+                            <span>₹{totalAmount.toFixed(2)}</span>
+                        </div>
+                        <div className={styles.summaryRow}>
+                            <span>Tax (18%)</span>
+                            <span>₹{gstAmount.toFixed(2)}</span>
+                        </div>
+                        <div className={styles.totalRow}>
+                            <span>Total</span>
+                            <span>₹{netAmount.toFixed(2)}</span>
+                        </div>
+
+                        <div className={styles.actionButtons}>
+                            <Button variant="secondary" className="w-full" disabled={cart.length === 0} onClick={handlePrint}>
+                                <Printer size={18} /> Print
+                            </Button>
+                            <Button className="w-full !bg-[#25D366] hover:!bg-[#128C7E]" disabled={cart.length === 0} onClick={handleWhatsApp}>
+                                <Share2 size={18} /> WhatsApp
+                            </Button>
+                            <Button className="w-full !bg-blue-600 hover:!bg-blue-700 col-span-2" disabled={cart.length === 0} onClick={processSale}>
+                                Complete Sale (Update Stock)
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -382,6 +457,8 @@ export default function BillingPage() {
                         </div>
                     </div>
 
+
+
                     <table>
                         <thead>
                             <tr>
@@ -395,7 +472,7 @@ export default function BillingPage() {
                             {cart.map(item => (
                                 <tr key={item.id}>
                                     <td>{item.name}</td>
-                                    <td className="text-center">{item.qty}</td>
+                                    <td className="text-center">{item.qty} {item.displayUnit}</td>
                                     <td className="text-right">{item.price.toFixed(2)}</td>
                                     <td className="text-right">{(item.price * item.qty).toFixed(2)}</td>
                                 </tr>
@@ -424,6 +501,23 @@ export default function BillingPage() {
                             </tr>
                         </tbody>
                     </table>
+
+                    {/* Digital Bill QR Code - Moved to Bottom */}
+                    <div style={{ marginTop: '20px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <QRCodeSVG
+                            value={typeof window !== 'undefined' ? `${window.location.origin}/invoice?data=${btoa(JSON.stringify({
+                                s: shopName,
+                                a: shopAddress,
+                                p: shopPhone,
+                                g: shopGstin,
+                                d: new Date().toISOString(),
+                                t: netAmount,
+                                i: cart.map(c => ({ n: c.name, q: c.qty, u: c.displayUnit, p: c.price }))
+                            }))}` : ""}
+                            size={100}
+                        />
+                        <p style={{ fontSize: '10px', marginTop: '5px' }}>Scan for Digital Bill</p>
+                    </div>
 
                     <div style={{ marginTop: '30px', textAlign: 'center', fontSize: '14px', color: '#777' }}>
                         <p>Thank you for shopping with us!</p>

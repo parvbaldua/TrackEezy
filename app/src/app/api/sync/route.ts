@@ -24,6 +24,15 @@ export async function POST(req: Request) {
         } else if (action === 'ADD') {
             await service.addStock(spreadsheetId, data); // data = [name, sku, qty, price, cat]
             return NextResponse.json({ success: true });
+        } else if (action === 'UPDATE') {
+            // Assuming 'data' for UPDATE contains { originalName: '...', ...otherFieldsToUpdate }
+            const { originalName } = data; // Access originalName from the 'data' object
+            if (!originalName) {
+                return NextResponse.json({ success: false, error: "Original name required for update" }, { status: 400 });
+            }
+            // Pass spreadsheetId instead of sheetUrl, consistent with other service calls
+            const result = await service.updateItem(spreadsheetId, originalName, data);
+            return NextResponse.json(result);
         } else if (action === 'SELL') {
             // data should be array of { name, qty }
             const result = await service.deductStock(spreadsheetId, data);

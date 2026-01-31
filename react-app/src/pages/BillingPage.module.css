@@ -2,14 +2,39 @@
 
 .container {
     display: flex;
-    flex-direction: row;
-    gap: 16px;
-    /* Tighter gap */
+    flex-direction: column;
     height: 100%;
-    /* Fills the .contentWrapper padding box */
     width: 100%;
     overflow: hidden;
     animation: fadeIn 0.3s ease-out;
+}
+
+.header {
+    padding: 24px 24px 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: white;
+}
+
+.contentWrapper {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    /* Tighter gap */
+    flex: 1;
+    /* Take remaining height */
+    width: 100%;
+    overflow: hidden;
+    /* Reduced padding to align with header */
+    padding-bottom: 20px;
 }
 
 @keyframes fadeIn {
@@ -30,7 +55,7 @@
     gap: 16px;
     /* Reduced from 24px */
     padding-right: 4px;
-    padding-left: 25px;
+    padding-left: 24px;
     /* Re-applied */
     height: 100%;
     overflow-y: auto;
@@ -163,8 +188,7 @@
     /* Reduced min-width */
     max-width: 450px;
     /* Prevent overly wide cart */
-    height: 92%;
-    /* User requested 92% */
+    max-height: calc(100vh - 60px);
 }
 
 .cartHeader {
@@ -271,6 +295,7 @@
     padding: 20px;
     background-color: rgba(0, 0, 0, 0.2);
     border-top: 1px solid rgba(255, 255, 255, 0.05);
+    flex-shrink: 0;
 }
 
 .summaryRow {
@@ -293,10 +318,18 @@
 }
 
 .actionButtons {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-wrap: wrap;
     gap: 12px;
     margin-top: 20px;
+}
+
+.actionButtons>button {
+    flex: 1 1 calc(50% - 6px);
+}
+
+.actionButtons>button:nth-child(n+3) {
+    flex: 1 1 100%;
 }
 
 /* Responsive */

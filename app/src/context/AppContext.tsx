@@ -14,6 +14,7 @@ interface AppState {
     inventory: any[];
     fetchInventory: () => Promise<void>;
     addInventoryItem: (item: any) => void;
+    updateInventoryItem: (item: any) => void;
     saveConfig: (name: string, url: string, address?: string, phone?: string, gstin?: string) => void;
 }
 
@@ -61,10 +62,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             // DEMO MODE: Load dummy data for UI testing
             console.log("Demo Mode: Loading sample inventory");
             setInventory([
-                { id: 101, name: "Sample Apple", sku: "FRT-001", price: 250, qty: 50, category: "Fruits" },
-                { id: 102, name: "Test Banana", sku: "FRT-002", price: 40, qty: 120, category: "Fruits" },
-                { id: 103, name: "Demo Milk", sku: "DAIRY-001", price: 65, qty: 20, category: "Dairy" },
-                { id: 104, name: "Mock Bread", sku: "BAK-001", price: 45, qty: 15, category: "Bakery" },
+                { id: 101, name: "Sample Apple", sku: "FRT-001", price: 250, qty: 5000, baseUnit: "gram", displayUnit: "kilogram", conversionFactor: 1000 },
+                { id: 102, name: "Test Banana", sku: "FRT-002", price: 40, qty: 120, baseUnit: "piece", displayUnit: "piece", conversionFactor: 1 },
+                { id: 103, name: "Demo Milk", sku: "DAIRY-001", price: 65, qty: 20000, baseUnit: "millilitre", displayUnit: "litre", conversionFactor: 1000 },
+                { id: 104, name: "Mock Bread", sku: "BAK-001", price: 45, qty: 15, baseUnit: "piece", displayUnit: "packet", conversionFactor: 1 },
             ]);
         }
     }, [sheetUrl, session]);
@@ -83,12 +84,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                     id: i,
                     name: row[0],
                     sku: row[1],
-                    qty: parseInt(row[2]) || 0,
+                    qty: parseFloat(row[2]) || 0,
                     price: parseFloat(row[3]) || 0,
-                    low: (parseInt(row[2]) || 0) < 10,
-                    category: row[4] || "General"
+                    low: (parseFloat(row[2]) || 0) < 10,
+                    // New Unit Fields
+                    baseUnit: row[4] || "piece",     // Default for backward compat
+                    displayUnit: row[5] || "piece",
+                    conversionFactor: parseFloat(row[6]) || 1
                 }));
-                setInventory(items.reverse());
+                // Filter out header row if it got caught (though api skips A1)
+                setInventory(items.filter((item: any) => item.name !== "Product Name").reverse());
             } else {
                 if (data.error) console.error("Sync API Error:", data.error);
             }
@@ -114,6 +119,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setInventory(prev => [item, ...prev]);
     };
 
+    const updateInventoryItem = (updatedItem: any) => {
+        setInventory((prev) => prev.map((item) => item.id === updatedItem.id ? updatedItem : item));
+    };
+
     const saveConfig = (name: string, url: string, address?: string, phone?: string, gstin?: string) => {
         localStorage.setItem("trackeezy_shop_name", name);
         localStorage.setItem("trackeezy_sheet_url", url);
@@ -136,7 +145,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return (
         <AppContext.Provider value={{
             shopName, shopAddress, shopPhone, shopGstin,
-            sheetUrl, isConfigured, saveConfig, loading, inventory, fetchInventory, addInventoryItem
+            sheetUrl, isConfigured, saveConfig, loading, inventory, fetchInventory, addInventoryItem, updateInventoryItem
         }}>
             {children}
         </AppContext.Provider>

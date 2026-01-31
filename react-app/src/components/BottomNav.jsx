@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Package, ScanLine, FileBarChart, User } from "lucide-react";
+import { Home, Package, Tags, FileBarChart, User } from "lucide-react";
 import styles from "./BottomNav.module.css";
 
 export default function BottomNav() {
@@ -9,7 +9,7 @@ export default function BottomNav() {
     const navItems = [
         { name: "Home", href: "/home", icon: Home },
         { name: "Inventory", href: "/inventory", icon: Package },
-        { name: "Sell", href: "/billing", icon: ScanLine },
+        { name: "Sell", href: "/sell", icon: Tags },
         { name: "Reports", href: "/reports", icon: FileBarChart },
         { name: "Profile", href: "/profile", icon: User },
     ];

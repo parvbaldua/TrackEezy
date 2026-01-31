@@ -10,16 +10,19 @@
         "preview": "vite preview"
     },
     "dependencies": {
+        "@react-oauth/google": "^0.12.1",
+        "clsx": "^2.1.0",
+        "html2canvas": "^1.4.1",
+        "idb": "^8.0.0",
+        "jspdf": "^4.0.0",
+        "jspdf-autotable": "^5.0.7",
+        "lucide-react": "^0.363.0",
+        "qrcode.react": "^4.2.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-router-dom": "^6.22.3",
-        "@react-oauth/google": "^0.12.1",
-        "lucide-react": "^0.363.0",
         "recharts": "^2.12.3",
-        "clsx": "^2.1.0",
-        "tailwind-merge": "^2.2.2",
-        "idb": "^8.0.0",
-        "html2canvas": "^1.4.1"
+        "tailwind-merge": "^2.2.2"
     },
     "devDependencies": {
         "@types/react": "^18.2.66",

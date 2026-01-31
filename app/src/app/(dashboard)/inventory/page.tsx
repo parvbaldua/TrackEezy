@@ -12,14 +12,23 @@ import { useApp } from "@/context/AppContext";
 import { useSearchParams } from "next/navigation";
 
 export default function InventoryPage() {
-    const { sheetUrl, inventory, fetchInventory, addInventoryItem } = useApp();
+    const { sheetUrl, inventory, fetchInventory, addInventoryItem, updateInventoryItem } = useApp();
     const searchParams = useSearchParams();
     const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(false);
 
     // Upload State
     const [isAddOpen, setIsAddOpen] = useState(false);
-    const [newItem, setNewItem] = useState({ name: "", sku: "", qty: "", price: "", category: "General" });
+    // Default to Wt based (gram/kg)
+    const [newItem, setNewItem] = useState({
+        name: "",
+        sku: "",
+        qty: "",
+        price: "",
+        baseUnit: "gram",
+        displayUnit: "kilogram",
+        conversionFactor: "1000"
+    });
     const [adding, setAdding] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
 
@@ -29,7 +38,7 @@ export default function InventoryPage() {
     useEffect(() => {
         if (searchParams.get("add") === "true") {
             setEditMode(false);
-            setNewItem({ name: "", sku: "", qty: "", price: "", category: "General" });
+            setNewItem({ name: "", sku: "", qty: "", price: "", baseUnit: "gram", displayUnit: "kilogram", conversionFactor: "1000" });
             setIsAddOpen(true);
         }
     }, [searchParams]);
@@ -37,12 +46,19 @@ export default function InventoryPage() {
     const handleEditItem = (item: any) => {
         setEditMode(true);
         setEditId(item.id);
+
+        // Converting Base Stock to Display Stock for Editing
+        // Display Qty = Base Qty / Factor
+        const displayQty = (item.qty / (item.conversionFactor || 1));
+
         setNewItem({
             name: item.name,
             sku: item.sku || "",
-            qty: item.qty.toString(),
+            qty: displayQty.toString(),
             price: item.price.toString(),
-            category: item.category || "General"
+            baseUnit: item.baseUnit || "gram",
+            displayUnit: item.displayUnit || "kilogram",
+            conversionFactor: (item.conversionFactor || 1).toString()
         });
         setIsAddOpen(true);
     };
@@ -51,44 +67,85 @@ export default function InventoryPage() {
         if (!newItem.name || !newItem.price) return;
         setAdding(true);
 
+        const factor = parseFloat(newItem.conversionFactor) || 1;
+        const inputQty = parseFloat(newItem.qty) || 0;
+        const totalBaseQty = inputQty * factor;
+
         const itemData = {
             id: editMode && editId ? editId : Date.now(),
             name: newItem.name,
             sku: newItem.sku,
-            qty: parseInt(newItem.qty) || 0,
+            qty: totalBaseQty, // Storing Base Unit Qty internally
             price: parseFloat(newItem.price) || 0,
-            low: (parseInt(newItem.qty) || 0) < 10,
-            category: newItem.category
+            low: totalBaseQty < (10 * factor), // Low stock alert logic (arbitrary 10 display units?) -> Let's keep it simple
+            baseUnit: newItem.baseUnit,
+            displayUnit: newItem.displayUnit,
+            conversionFactor: factor
         };
 
-        if (editMode) {
-            // Logic for edit mode placeholder
-        } else {
-            addInventoryItem(itemData);
-        }
-
-        setIsAddOpen(false);
-        setNewItem({ name: "", sku: "", qty: "", price: "", category: "General" });
-
-        // Trigger Success Popup
-        setShowSuccess(true);
-
-
-
         try {
-            if (!editMode) {
+            if (editMode && editId) {
+                // Find original name to identify the row to update
+                const originalItem = inventory.find(i => i.id === editId);
+                const originalName = originalItem?.name;
+
+                if (!originalName) {
+                    alert("Original item not found. Cannot update.");
+                    setAdding(false);
+                    return;
+                }
+
+                // Call Update API
+                await fetch('/api/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sheetUrl,
+                        action: 'UPDATE',
+                        originalName: originalName,
+                        data: [
+                            newItem.name,
+                            newItem.sku,
+                            totalBaseQty,
+                            newItem.price,
+                            newItem.baseUnit,
+                            newItem.displayUnit,
+                            factor
+                        ]
+                    })
+                });
+
+                // Optimistic Update
+                updateInventoryItem(itemData);
+
+            } else {
+                // Add New Item
                 await fetch('/api/sync', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         sheetUrl,
                         action: 'ADD',
-                        data: [newItem.name, newItem.sku, newItem.qty, newItem.price, newItem.category]
+                        data: [
+                            newItem.name,
+                            newItem.sku,
+                            totalBaseQty,
+                            newItem.price,
+                            newItem.baseUnit,
+                            newItem.displayUnit,
+                            factor
+                        ]
                     })
                 });
-            } else {
-                // TODO: Implement Update in Sheets API
+                // Optimistic Add
+                addInventoryItem(itemData);
             }
+
+            setIsAddOpen(false);
+            setNewItem({ name: "", sku: "", qty: "", price: "", baseUnit: "gram", displayUnit: "kilogram", conversionFactor: "1000" });
+
+            // Trigger Success Popup
+            setShowSuccess(true);
 
             setTimeout(() => {
                 fetchInventory();
@@ -121,7 +178,7 @@ export default function InventoryPage() {
                     </Button>
                     <Button className={styles.addButton} onClick={() => {
                         setEditMode(false);
-                        setNewItem({ name: "", sku: "", qty: "", price: "", category: "General" });
+                        setNewItem({ name: "", sku: "", qty: "", price: "", baseUnit: "gram", displayUnit: "kilogram", conversionFactor: "1000" });
                         setIsAddOpen(true);
                     }}>
                         <Plus size={24} />
@@ -160,7 +217,7 @@ export default function InventoryPage() {
                             <p className={styles.itemPrice}>₹{item.price}</p>
                             <div className="flex flex-col items-end gap-1">
                                 <p className={clsx(styles.stockCount, item.low && styles.stockLow)}>
-                                    Stock: {item.qty}
+                                    Stock: {parseFloat((item.qty / (item.conversionFactor || 1)).toFixed(2))} {item.displayUnit}
                                 </p>
                                 <Button variant="ghost" className="!p-1 h-auto text-white/50" onClick={() => handleEditItem(item)}>
                                     <Edit2 size={14} />
@@ -188,7 +245,7 @@ export default function InventoryPage() {
                         </div>
                         <div className={styles.tableCell}>{item.sku}</div>
                         <div className={styles.tableCell}>₹{item.price}</div>
-                        <div className={clsx(styles.tableCell, item.low && styles.stockLow)}>{item.qty}</div>
+                        <div className={clsx(styles.tableCell, item.low && styles.stockLow)}>{parseFloat((item.qty / (item.conversionFactor || 1)).toFixed(2))} {item.displayUnit}</div>
                         <div className={styles.rowAction}>
                             <Button variant="ghost" className="!p-2" onClick={() => handleEditItem(item)}>
                                 <Edit2 size={16} />
@@ -203,7 +260,7 @@ export default function InventoryPage() {
                     <div>
                         <label className={styles.modalLabel}>Product Name</label>
                         <Input
-                            placeholder="e.g. Basmati Rice 5kg"
+                            placeholder="e.g. Basmati Rice"
                             value={newItem.name}
                             className={styles.modalInput}
                             onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
@@ -212,7 +269,71 @@ export default function InventoryPage() {
 
                     <div className={styles.rowGroup}>
                         <div>
-                            <label className={styles.modalLabel}>Price (₹)</label>
+                            <label className={styles.modalLabel}>Inventory Type (Base Unit)</label>
+                            <select
+                                className={clsx(styles.modalInput, "w-full h-10 bg-[#27272A] border border-white/10 rounded-md px-3 text-white")}
+                                value={newItem.baseUnit}
+                                onChange={(e) => {
+                                    const base = e.target.value;
+                                    let display = base;
+                                    let factor = "1";
+
+                                    // Auto-set smart defaults
+                                    if (base === 'gram') { display = 'kilogram'; factor = '1000'; }
+                                    if (base === 'millilitre') { display = 'litre'; factor = '1000'; }
+
+                                    setNewItem({ ...newItem, baseUnit: base, displayUnit: display, conversionFactor: factor });
+                                }}
+                            >
+                                <option value="gram">Weight (gram)</option>
+                                <option value="millilitre">Liquid (ml)</option>
+                                <option value="piece">Count (piece)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className={styles.modalLabel}>Display Unit (Selling)</label>
+                            <select
+                                className={clsx(styles.modalInput, "w-full h-10 bg-[#27272A] border border-white/10 rounded-md px-3 text-white")}
+                                value={newItem.displayUnit}
+                                onChange={(e) => setNewItem({ ...newItem, displayUnit: e.target.value })}
+                            >
+                                {newItem.baseUnit === 'gram' && (
+                                    <>
+                                        <option value="gram">gram (g)</option>
+                                        <option value="kilogram">kilogram (kg)</option>
+                                    </>
+                                )}
+                                {newItem.baseUnit === 'millilitre' && (
+                                    <>
+                                        <option value="millilitre">millilitre (ml)</option>
+                                        <option value="litre">litre (L)</option>
+                                    </>
+                                )}
+                                {newItem.baseUnit === 'piece' && (
+                                    <>
+                                        <option value="piece">piece</option>
+                                        <option value="packet">packet</option>
+                                        <option value="box">box</option>
+                                        <option value="bundle">bundle</option>
+                                    </>
+                                )}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className={styles.rowGroup}>
+                        <div>
+                            <label className={styles.modalLabel}>One {newItem.displayUnit} = ? {newItem.baseUnit}</label>
+                            <Input
+                                placeholder="Conversion Factor"
+                                type="number"
+                                value={newItem.conversionFactor}
+                                className={styles.modalInput}
+                                onChange={(e) => setNewItem({ ...newItem, conversionFactor: e.target.value })}
+                            />
+                        </div>
+                        <div>
+                            <label className={styles.modalLabel}>Price per {newItem.displayUnit} (₹)</label>
                             <Input
                                 placeholder="0.00"
                                 type="number"
@@ -221,32 +342,23 @@ export default function InventoryPage() {
                                 onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
                             />
                         </div>
-                        <div>
-                            <label className={styles.modalLabel}>Quantity</label>
-                            <Input
-                                placeholder="0"
-                                type="number"
-                                value={newItem.qty}
-                                className={styles.modalInput}
-                                onChange={(e) => setNewItem({ ...newItem, qty: e.target.value })}
-                            />
-                        </div>
                     </div>
 
                     <div className={styles.rowGroup}>
                         <div>
-                            <label className={styles.modalLabel}>Category</label>
+                            <label className={styles.modalLabel}>Stock ({newItem.displayUnit})</label>
                             <Input
-                                placeholder="e.g. Grains"
-                                value={newItem.category}
+                                placeholder="0"
+                                type="number"
+                                value={newItem.qty} // This is Display Qty for Input
                                 className={styles.modalInput}
-                                onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
+                                onChange={(e) => setNewItem({ ...newItem, qty: e.target.value })}
                             />
                         </div>
                         <div>
                             <label className={styles.modalLabel}>SKU (Optional)</label>
                             <Input
-                                placeholder="e.g. SKU-12345"
+                                placeholder="e.g. SKU-123"
                                 value={newItem.sku}
                                 className={styles.modalInput}
                                 onChange={(e) => setNewItem({ ...newItem, sku: e.target.value })}
