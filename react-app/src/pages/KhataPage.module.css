@@ -1,0 +1,225 @@
+.container {
+    padding: 1rem;
+    padding-bottom: 6rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+}
+
+.title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: white;
+}
+
+.subtitle {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 0.25rem;
+}
+
+.headerActions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Stats Grid */
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.statCard {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem !important;
+}
+
+.statIcon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.statLabel {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.statValue {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: white;
+}
+
+/* Search */
+.searchWrapper {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.searchInput {
+    padding-left: 2.75rem !important;
+    height: 44px;
+}
+
+/* Customer List */
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.customerCard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem !important;
+    transition: all 0.2s;
+}
+
+.customerCard:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.customerInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    cursor: pointer;
+    flex: 1;
+}
+
+.avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.125rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.customerName {
+    font-weight: 600;
+    color: white;
+    font-size: 1rem;
+}
+
+.customerPhone {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 0.25rem;
+}
+
+.customerMeta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.balance {
+    font-weight: 700;
+    font-size: 1.125rem;
+    text-align: right;
+}
+
+.balanceOwing {
+    color: #f87171;
+}
+
+.balanceClear {
+    color: #4ade80;
+}
+
+.actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.actionBtn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.6);
+    transition: all 0.15s;
+}
+
+.actionBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+/* Modal */
+.modalLabel {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.375rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+    .statsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .customerMeta {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.5rem;
+    }
+
+    .actions {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .header {
+        flex-direction: column;
+    }
+
+    .headerActions {
+        width: 100%;
+    }
+
+    .headerActions button {
+        flex: 1;
+    }
+}

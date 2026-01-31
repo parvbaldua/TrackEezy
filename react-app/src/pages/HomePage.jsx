@@ -1,5 +1,5 @@
 import { Card, Button } from "../components/ui/Shared";
-import { TrendingUp, Package, AlertTriangle, ArrowRight, RefreshCw } from "lucide-react";
+import { TrendingUp, Package, AlertTriangle, ArrowRight, RefreshCw, Wallet } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./HomePage.module.css";
 import clsx from "clsx";
@@ -125,6 +125,9 @@ export default function HomePage() {
                     </Button>
                     <Button variant="secondary" onClick={() => navigate("/inventory")} className={clsx(styles.actionBtn, styles.btnSmall)}>
                         Manage Inventory
+                    </Button>
+                    <Button variant="secondary" onClick={() => navigate("/khata")} className={clsx(styles.actionBtn, styles.btnSmall)}>
+                        <Wallet size={18} /> Khata / Udhar
                     </Button>
                 </div>
             </div>

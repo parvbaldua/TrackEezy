@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useAuth } from "./AuthProvider";
 import { GoogleSheetsService } from "../services/sheets";
+import { useOffline } from "./OfflineContext";
 
 const AppContext = createContext();
 
@@ -55,6 +56,46 @@ export function AppProvider({ children }) {
         }
     }, [sheetUrl, accessToken]);
 
+    // Offline Sync Handler
+    const { syncPendingOperations } = useOffline();
+
+    useEffect(() => {
+        const handleSync = async () => {
+            if (!accessToken || !sheetUrl) return;
+
+            console.log("Processing offline sync queue...");
+            const spreadsheetId = getSheetId(sheetUrl);
+
+            const result = await syncPendingOperations(async (op) => {
+                console.log("Syncing operation:", op.type);
+                switch (op.type) {
+                    case 'RECORD_SALE':
+                        // data: { ...saleDetails }
+                        await GoogleSheetsService.recordSale(accessToken, spreadsheetId, op.data);
+                        break;
+                    case 'DEDUCT_STOCK':
+                        // data: [ { name, qty }, ... ]
+                        await GoogleSheetsService.deductStock(accessToken, spreadsheetId, op.data);
+                        break;
+                    case 'ADD_STOCK':
+                        // data: [ ...rowValues ]
+                        await GoogleSheetsService.addStock(accessToken, spreadsheetId, op.data);
+                        break;
+                    default:
+                        console.warn("Unknown sync operation:", op.type);
+                }
+            });
+
+            if (result.success > 0) {
+                console.log(`Sync completed: ${result.success} success, ${result.failed} failed`);
+                fetchInventoryInternal(sheetUrl); // Refresh inventory after sync
+            }
+        };
+
+        window.addEventListener('sync-pending', handleSync);
+        return () => window.removeEventListener('sync-pending', handleSync);
+    }, [accessToken, sheetUrl, syncPendingOperations]);
+
     const fetchInventoryInternal = async (url) => {
         if (!url || !accessToken) return;
         try {
@@ -74,7 +115,11 @@ export function AppProvider({ children }) {
                     // New Unit Fields
                     baseUnit: row[4] || "gram",
                     displayUnit: row[5] || "kilogram",
-                    conversionFactor: parseFloat(String(row[6] || "1000").replace(/,/g, '')) || 1000
+                    conversionFactor: parseFloat(String(row[6] || "1000").replace(/,/g, '')) || 1000,
+                    // Phase 4: Extended fields
+                    expiryDate: row[7] || '', // Column H
+                    batchNo: row[8] || '',    // Column I
+                    hsnCode: row[9] || ''     // Column J
                 }));
                 console.log("AppContext: Parsed Items:", items.length);
                 setInventory(items.reverse());

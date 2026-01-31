@@ -1,13 +1,16 @@
 import React, { useState } from "react";
 import { Card, Button, Input } from "../components/ui/Shared";
-import { User, Settings, Database, Share2, HelpCircle, LogOut, ChevronRight, Save } from "lucide-react";
+import { User, Settings, Database, Share2, HelpCircle, LogOut, ChevronRight, Save, Shield, CreditCard, Globe } from "lucide-react";
 import styles from "./ProfilePage.module.css";
 import { useAuth } from "../context/AuthProvider";
 import { useApp } from "../context/AppContext";
 import { GoogleSheetsService } from "../services/sheets";
+import { useNavigate } from "react-router-dom";
+import LanguageSelector from "../components/ui/LanguageSelector";
 
 export default function ProfilePage() {
-    const { user, login, logout, accessToken } = useAuth();
+    const navigate = useNavigate();
+    const { user, login, logout, accessToken, isAdmin } = useAuth();
     const { sheetUrl, saveConfig, shopName, shopAddress, shopPhone, shopGstin } = useApp();
     const [isEditing, setIsEditing] = useState(false);
 
@@ -16,6 +19,7 @@ export default function ProfilePage() {
     const [address, setAddress] = useState(shopAddress || "");
     const [phone, setPhone] = useState(shopPhone || "");
     const [gstin, setGstin] = useState(shopGstin || "");
+    const [upiId, setUpiId] = useState(localStorage.getItem('trackeezy_upi_id') || "");
 
     const menuItems = [
         { icon: Database, label: "Data Sync", desc: "Google Sheets status" },
@@ -26,6 +30,12 @@ export default function ProfilePage() {
 
     const handleSave = () => {
         saveConfig(name, sheetUrl, address, phone, gstin);
+        // Save UPI ID separately
+        if (upiId) {
+            localStorage.setItem('trackeezy_upi_id', upiId);
+        } else {
+            localStorage.removeItem('trackeezy_upi_id');
+        }
         setIsEditing(false);
     };
 
@@ -61,6 +71,27 @@ export default function ProfilePage() {
                 )}
             </Card>
 
+            {/* Admin Panel Link - Only for Admins */}
+            {user && isAdmin && (
+                <Card
+                    className="p-4 mb-6 cursor-pointer hover:bg-white/5 transition-colors border-l-4 border-l-emerald-500"
+                    onClick={() => navigate('/admin')}
+                >
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className={`${styles.iconBox} !bg-emerald-500/20 !text-emerald-400`}>
+                                <Shield size={20} />
+                            </div>
+                            <div>
+                                <h3 className={styles.settingLabel}>Admin Panel</h3>
+                                <p className={styles.settingDesc}>Manage users & settings</p>
+                            </div>
+                        </div>
+                        <ChevronRight size={18} className="text-white/30" />
+                    </div>
+                </Card>
+            )}
+
             {/* Shop Details Configuration */}
             {user && (
                 <Card className="p-4 flex flex-col gap-4 mb-6">
@@ -89,6 +120,16 @@ export default function ProfilePage() {
                             <Input placeholder="Shop Address (e.g. 123 Market St, City)" value={address} onChange={(e) => setAddress(e.target.value)} />
                             <Input placeholder="Phone Number" value={phone} onChange={(e) => setPhone(e.target.value)} />
                             <Input placeholder="GSTIN (Optional)" value={gstin} onChange={(e) => setGstin(e.target.value)} />
+                            <div className="relative">
+                                <Input
+                                    placeholder="UPI ID (e.g. yourname@upi)"
+                                    value={upiId}
+                                    onChange={(e) => setUpiId(e.target.value)}
+                                />
+                                <p className="text-xs text-white/40 mt-1 flex items-center gap-1">
+                                    <CreditCard size={12} /> For payment QR on bills
+                                </p>
+                            </div>
                         </div>
                     ) : (
                         <div className="flex flex-col gap-2 p-3 bg-[rgba(255,255,255,0.03)] rounded-md border border-[rgba(255,255,255,0.05)] text-sm">
@@ -96,8 +137,25 @@ export default function ProfilePage() {
                             <div className="flex justify-between"><span className="text-white/50">Address:</span> <span>{shopAddress || "-"}</span></div>
                             <div className="flex justify-between"><span className="text-white/50">Phone:</span> <span>{shopPhone || "-"}</span></div>
                             <div className="flex justify-between"><span className="text-white/50">GSTIN:</span> <span>{shopGstin || "-"}</span></div>
+                            <div className="flex justify-between"><span className="text-white/50">UPI ID:</span> <span className="flex items-center gap-1">{upiId || <span className="text-orange-400">Not Set</span>}</span></div>
                         </div>
                     )}
+                </Card>
+            )}
+
+            {/* Language Selection */}
+            {user && (
+                <Card className="p-4 mb-6">
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className={styles.iconBox}>
+                            <Globe size={20} />
+                        </div>
+                        <div>
+                            <h3 className={styles.settingLabel}>App Language</h3>
+                            <p className={styles.settingDesc}>Change display language</p>
+                        </div>
+                    </div>
+                    <LanguageSelector />
                 </Card>
             )}
 

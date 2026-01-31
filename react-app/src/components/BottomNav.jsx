@@ -1,17 +1,19 @@
 import { Link, useLocation } from "react-router-dom";
 import { Home, Package, Tags, FileBarChart, User } from "lucide-react";
 import styles from "./BottomNav.module.css";
+import { useTranslation } from "../context/LanguageContext";
 
 export default function BottomNav() {
     const location = useLocation();
     const pathname = location.pathname;
+    const t = useTranslation();
 
     const navItems = [
-        { name: "Home", href: "/home", icon: Home },
-        { name: "Inventory", href: "/inventory", icon: Package },
-        { name: "Sell", href: "/sell", icon: Tags },
-        { name: "Reports", href: "/reports", icon: FileBarChart },
-        { name: "Profile", href: "/profile", icon: User },
+        { key: "home", href: "/home", icon: Home },
+        { key: "inventory", href: "/inventory", icon: Package },
+        { key: "billing", href: "/sell", icon: Tags },
+        { key: "reports", href: "/reports", icon: FileBarChart },
+        { key: "profile", href: "/profile", icon: User },
     ];
 
     return (
@@ -19,12 +21,13 @@ export default function BottomNav() {
             {navItems.map((item) => {
                 const isActive = pathname === item.href;
                 return (
-                    <Link key={item.name} to={item.href} className={`${styles.item} ${isActive ? styles.active : ""}`}>
+                    <Link key={item.key} to={item.href} className={`${styles.item} ${isActive ? styles.active : ""}`}>
                         <item.icon className={styles.icon} size={24} />
-                        <span className={styles.label}>{item.name}</span>
+                        <span className={styles.label}>{t(`nav.${item.key}`)}</span>
                     </Link>
                 );
             })}
         </nav>
     );
 }
+

@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
 import { useApp } from "../context/AppContext";
+import { useOffline } from "../context/OfflineContext";
 import styles from "./BillingPage.module.css";
 import { Input, Button } from "../components/ui/Shared";
-import { Search, ShoppingCart, Plus, Minus, Trash2, Printer, Share2, ChevronUp, ChevronDown } from "lucide-react";
+import { Search, ShoppingCart, Plus, Minus, Trash2, Printer, Share2, ChevronUp, ChevronDown, Mic, MicOff } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import clsx from "clsx";
 import { useAuth } from "../context/AuthProvider";
@@ -11,11 +12,62 @@ import { GoogleSheetsService } from "../services/sheets";
 export default function BillingPage() {
     const { inventory, shopName, shopAddress, shopPhone, shopGstin, sheetUrl, fetchInventory, getSheetId } = useApp();
     const { accessToken } = useAuth();
+    const { isOnline, queueOperation } = useOffline();
 
     const [searchTerm, setSearchTerm] = useState("");
 
     const [cart, setCart] = useState([]);
     const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
+    const [isListening, setIsListening] = useState(false);
+
+    // UPI ID for payment QR (stored in localStorage)
+    const [upiId, setUpiId] = useState(localStorage.getItem('trackeezy_upi_id') || '');
+
+    // Voice Search using Web Speech API (Zero Cost)
+    const startVoiceSearch = () => {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            alert('Voice search is not supported in your browser. Try Chrome or Edge.');
+            return;
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+
+        recognition.lang = 'hi-IN'; // Hindi support for Bharat
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = () => {
+            setIsListening(true);
+        };
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            setSearchTerm(transcript);
+            setIsListening(false);
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Voice recognition error:', event.error);
+            setIsListening(false);
+            if (event.error === 'not-allowed') {
+                alert('Microphone access denied. Please allow microphone permissions.');
+            }
+        };
+
+        recognition.onend = () => {
+            setIsListening(false);
+        };
+
+        recognition.start();
+    };
+
+    // Generate UPI Payment Link
+    const generateUPILink = (amount) => {
+        if (!upiId) return null;
+        const encodedName = encodeURIComponent(shopName || 'Store');
+        return `upi://pay?pa=${upiId}&pn=${encodedName}&am=${amount.toFixed(2)}&cu=INR`;
+    };
 
     // Persistence: Load Cart
     useEffect(() => {
@@ -229,6 +281,32 @@ export default function BillingPage() {
 
             const soldItems = cart.map(item => ({ name: item.name, qty: item.qty }));
 
+            // Offline Handling
+            if (!isOnline) {
+                // Queue Deduct Stock
+                await queueOperation({
+                    type: 'DEDUCT_STOCK',
+                    data: soldItems
+                });
+
+                // Queue Record Sale
+                await queueOperation({
+                    type: 'RECORD_SALE',
+                    data: {
+                        date: new Date().toISOString(),
+                        amount: netAmount,
+                        itemsCount: totalItems,
+                        invoiceId: Date.now().toString(),
+                        items: soldItems
+                    }
+                });
+
+                alert("You are Offline. Sale Saved! Will sync when online.");
+                setCart([]);
+                localStorage.removeItem("cart_data");
+                return;
+            }
+
             // Use Client Side Service
             const spreadsheetId = getSheetId(sheetUrl);
             const result = await GoogleSheetsService.deductStock(accessToken, spreadsheetId, soldItems);
@@ -283,6 +361,15 @@ export default function BillingPage() {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             // Auto-select first suggestion on Enter could be added here
                             />
+
+                            {/* Voice Search Button */}
+                            <button
+                                onClick={startVoiceSearch}
+                                className={`absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-all ${isListening ? 'bg-red-500 text-white animate-pulse' : 'bg-white/10 text-white/50 hover:bg-white/20 hover:text-white'}`}
+                                title="Voice Search (Hindi)"
+                            >
+                                {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+                            </button>
 
                             {/* Search Suggestions Dropdown */}
                             {searchTerm && (
@@ -417,6 +504,24 @@ export default function BillingPage() {
                             <span>Total</span>
                             <span>₹{netAmount.toFixed(2)}</span>
                         </div>
+
+                        {/* UPI Payment QR Code */}
+                        {upiId && cart.length > 0 && (
+                            <div className="mt-3 p-3 bg-white rounded-lg text-center">
+                                <QRCodeSVG
+                                    value={generateUPILink(netAmount)}
+                                    size={100}
+                                    className="mx-auto"
+                                />
+                                <p className="text-xs text-gray-600 mt-2">Scan to Pay ₹{netAmount.toFixed(0)}</p>
+                            </div>
+                        )}
+
+                        {!upiId && (
+                            <p className="text-xs text-white/40 text-center mt-2">
+                                Add UPI ID in Profile to show payment QR
+                            </p>
+                        )}
 
                         <div className={styles.actionButtons}>
                             <Button variant="secondary" className="w-full" disabled={cart.length === 0} onClick={handlePrint}>

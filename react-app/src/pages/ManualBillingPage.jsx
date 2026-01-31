@@ -3,7 +3,7 @@ import { useApp } from "../context/AppContext";
 import styles from "./ManualBillingPage.module.css";
 import { Input, Button } from "../components/ui/Shared";
 import { Modal } from "../components/ui/Modal";
-import { Search, ShoppingCart, Plus, Minus, Trash2, Printer, Share2, ChevronUp, ChevronDown, Settings, Zap, X, Check, Phone, FileText, Download } from "lucide-react";
+import { Search, ShoppingCart, Plus, Minus, Trash2, Printer, Share2, ChevronUp, ChevronDown, Settings, Zap, X, Check, Phone, FileText, Download, Mic, MicOff } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import clsx from "clsx";
 import { useAuth } from "../context/AuthProvider";
@@ -26,6 +26,7 @@ export default function ManualBillingPage() {
 
     // Manual Entry State
     const [manualPrice, setManualPrice] = useState("");
+    const [manualProductName, setManualProductName] = useState(""); // Custom product name
     const [quantity, setQuantity] = useState(1);
     const [discountPercent, setDiscountPercent] = useState("");
     const [gstEnabled, setGstEnabled] = useState(false);
@@ -39,6 +40,16 @@ export default function ManualBillingPage() {
     const [showShareModal, setShowShareModal] = useState(false);
     const [customerPhone, setCustomerPhone] = useState("");
     const [pdfFormat, setPdfFormat] = useState("pos"); // 'pos' or 'a4'
+
+    // UPI ID for payment QR (stored in localStorage)
+    const [upiId] = useState(localStorage.getItem('trackeezy_upi_id') || '');
+
+    // Generate UPI Payment Link
+    const generateUPILink = (amount) => {
+        if (!upiId) return null;
+        const encodedName = encodeURIComponent(shopName || 'Store');
+        return `upi://pay?pa=${upiId}&pn=${encodedName}&am=${amount.toFixed(2)}&cu=INR`;
+    };
 
     // Load Quick Picks from localStorage
     useEffect(() => {
@@ -121,7 +132,12 @@ export default function ManualBillingPage() {
 
     // Add to Cart
     const addToCart = () => {
-        if (!selectedProduct || !manualPrice) return;
+        // Allow either selected product OR manual product name
+        const productName = selectedProduct ? selectedProduct.name : manualProductName.trim();
+        if (!productName || !manualPrice) {
+            alert("Please enter product name and price");
+            return;
+        }
 
         const price = parseFloat(manualPrice) || 0;
         const discount = parseFloat(discountPercent) || 0;
@@ -129,19 +145,21 @@ export default function ManualBillingPage() {
 
         const cartItem = {
             id: Date.now(), // Unique cart item ID
-            productId: selectedProduct.id,
-            name: selectedProduct.name,
+            productId: selectedProduct ? selectedProduct.id : `custom_${Date.now()}`,
+            name: productName,
             price: price,
             qty: quantity,
             discountPercent: discount,
             gstEnabled: gstEnabled,
-            gstPercent: gst
+            gstPercent: gst,
+            isCustom: !selectedProduct // Flag for custom items
         };
 
         setCart(prev => [...prev, cartItem]);
 
         // Reset form
         setSelectedProduct(null);
+        setManualProductName("");
         setManualPrice("");
         setQuantity(1);
         setDiscountPercent("");
@@ -248,13 +266,13 @@ export default function ManualBillingPage() {
         downloadPDF(doc, `invoice_${invoiceId}.pdf`);
     };
 
-    // Send via WhatsApp
-    const handleSendWhatsApp = () => {
-        // Generate and download PDF first
-        handleDownloadPDF();
+    // Send via WhatsApp using Web Share API for direct file sharing
+    const handleSendWhatsApp = async () => {
+        const invoiceId = Date.now().toString().slice(-6);
 
         // Build message
         let message = `🧾 *INVOICE - ${shopName || 'Store'}*\n`;
+        message += `Invoice #: ${invoiceId}\n`;
         message += `Date: ${new Date().toLocaleDateString('en-GB')}\n`;
         message += `------------------------------\n`;
 
@@ -273,10 +291,41 @@ export default function ManualBillingPage() {
         }
         message += `*TOTAL:* ₹${cartTotals.grandTotal.toFixed(2)}\n`;
         message += `------------------------------\n`;
-        message += `_PDF invoice attached separately_`;
+        message += `Thank you for your business!`;
 
-        // Build WhatsApp URL with phone
-        const phone = customerPhone.replace(/\D/g, ""); // Remove non-digits
+        // Try Web Share API first (for direct file sharing)
+        if (navigator.share && navigator.canShare) {
+            try {
+                // Generate PDF as blob
+                const doc = generateInvoicePDF({
+                    format: pdfFormat,
+                    shop: { name: shopName, address: shopAddress, phone: shopPhone, gstin: shopGstin },
+                    cart: cart,
+                    totals: cartTotals,
+                    invoiceId: invoiceId
+                });
+
+                const pdfBlob = doc.output('blob');
+                const file = new File([pdfBlob], `invoice_${invoiceId}.pdf`, { type: 'application/pdf' });
+
+                // Check if file sharing is supported
+                if (navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        title: `Invoice #${invoiceId}`,
+                        text: message,
+                        files: [file]
+                    });
+                    setShowShareModal(false);
+                    setCustomerPhone("");
+                    return;
+                }
+            } catch (err) {
+                console.log('Web Share failed, falling back to WhatsApp URL:', err);
+            }
+        }
+
+        // Fallback: Open WhatsApp with message (no file attachment)
+        const phone = customerPhone.replace(/\D/g, "");
         const fullPhone = phone.startsWith("91") ? phone : `91${phone}`;
         const url = phone
             ? `https://wa.me/${fullPhone}?text=${encodeURIComponent(message)}`
@@ -448,13 +497,87 @@ export default function ManualBillingPage() {
                         </div>
                     )}
 
-                    {/* Empty State */}
-                    {!selectedProduct && quickPicks.length === 0 && (
-                        <div className={styles.emptyState}>
-                            <Zap size={48} className="text-white/20" />
-                            <p>No Quick Picks set up yet</p>
-                            <Button variant="secondary" onClick={() => setIsEditingQuickPicks(true)}>
-                                <Settings size={16} /> Set Up Quick Picks
+                    {/* Custom Product Entry (when no product selected) */}
+                    {!selectedProduct && (
+                        <div className={styles.entryForm}>
+                            <div className={styles.selectedHeader}>
+                                <span className={styles.selectedLabel}>✏️ Add Custom Item</span>
+                            </div>
+
+                            <div className={styles.formRow}>
+                                <div className={styles.formGroup} style={{ flex: 2 }}>
+                                    <label className={styles.label}>Product Name</label>
+                                    <Input
+                                        type="text"
+                                        placeholder="Enter product name..."
+                                        value={manualProductName}
+                                        onChange={(e) => setManualProductName(e.target.value)}
+                                        className={styles.priceInput}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className={styles.formRow}>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>Price (₹)</label>
+                                    <Input
+                                        type="number"
+                                        placeholder="Enter price"
+                                        value={manualPrice}
+                                        onChange={(e) => setManualPrice(e.target.value)}
+                                        className={styles.priceInput}
+                                    />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>Quantity</label>
+                                    <div className={styles.qtyControl}>
+                                        <button onClick={() => setQuantity(q => Math.max(1, q - 1))}><Minus size={16} /></button>
+                                        <span>{quantity}</span>
+                                        <button onClick={() => setQuantity(q => q + 1)}><Plus size={16} /></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className={styles.formRow}>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>Discount (%)</label>
+                                    <Input
+                                        type="number"
+                                        placeholder="0"
+                                        value={discountPercent}
+                                        onChange={(e) => setDiscountPercent(e.target.value)}
+                                        className={styles.discountInput}
+                                    />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>GST</label>
+                                    <div className={styles.gstControl}>
+                                        <button
+                                            className={clsx(styles.gstToggle, !gstEnabled && styles.active)}
+                                            onClick={() => setGstEnabled(false)}
+                                        >Off</button>
+                                        <button
+                                            className={clsx(styles.gstToggle, gstEnabled && styles.active)}
+                                            onClick={() => setGstEnabled(true)}
+                                        >On</button>
+                                        {gstEnabled && (
+                                            <Input
+                                                type="number"
+                                                value={gstPercent}
+                                                onChange={(e) => setGstPercent(e.target.value)}
+                                                className={styles.gstInput}
+                                            />
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <Button
+                                className={styles.addToCartBtn}
+                                onClick={addToCart}
+                                disabled={!manualProductName.trim() || !manualPrice}
+                            >
+                                <Plus size={18} /> Add to Cart
                             </Button>
                         </div>
                     )}
@@ -556,6 +679,24 @@ export default function ManualBillingPage() {
                             <span>Total</span>
                             <span>₹{cartTotals.grandTotal.toFixed(2)}</span>
                         </div>
+
+                        {/* UPI Payment QR Code */}
+                        {upiId && cart.length > 0 && (
+                            <div className="mt-3 p-3 bg-white rounded-lg text-center">
+                                <QRCodeSVG
+                                    value={generateUPILink(cartTotals.grandTotal)}
+                                    size={100}
+                                    className="mx-auto"
+                                />
+                                <p className="text-xs text-gray-600 mt-2">Scan to Pay ₹{cartTotals.grandTotal.toFixed(0)}</p>
+                            </div>
+                        )}
+
+                        {!upiId && (
+                            <p className="text-xs text-white/40 text-center mt-2">
+                                Add UPI ID in Profile to show payment QR
+                            </p>
+                        )}
 
                         <div className={styles.actionButtons}>
                             <Button variant="secondary" className="w-full" disabled={cart.length === 0} onClick={handlePrint}>

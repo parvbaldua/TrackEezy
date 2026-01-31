@@ -1,0 +1,190 @@
+.wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.selector {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background: hsl(var(--bg-card));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.selector:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.selectedInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.label {
+    display: block;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.current {
+    display: block;
+    font-size: 0.9375rem;
+    color: white;
+    font-weight: 500;
+}
+
+.chevron {
+    color: rgba(255, 255, 255, 0.4);
+    transition: transform 0.2s;
+}
+
+.chevron.open {
+    transform: rotate(180deg);
+}
+
+.backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+}
+
+.dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
+    background: hsl(var(--bg-card));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    z-index: 50;
+    animation: slideDown 0.15s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s;
+    text-align: left;
+}
+
+.item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.item.active {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.flag {
+    font-size: 1.25rem;
+}
+
+.langInfo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.nativeName {
+    color: white;
+    font-weight: 500;
+    font-size: 0.9375rem;
+}
+
+.englishName {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.75rem;
+}
+
+/* Compact Version Styles */
+.compactWrapper {
+    position: relative;
+}
+
+.compactButton {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    color: white;
+    transition: all 0.2s;
+}
+
+.compactButton:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.compactCode {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.compactDropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    min-width: 150px;
+    background: hsl(var(--bg-card));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    z-index: 50;
+    animation: slideDown 0.15s ease-out;
+}
+
+.compactItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.625rem 0.75rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: white;
+    font-size: 0.875rem;
+    text-align: left;
+    transition: background 0.15s;
+}
+
+.compactItem:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.compactItem.active {
+    background: rgba(255, 255, 255, 0.08);
+}

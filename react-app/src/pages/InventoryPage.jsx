@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, Input, Button } from "../components/ui/Shared";
 import { Modal } from "../components/ui/Modal";
 import { SuccessPopup } from "../components/ui/SuccessPopup";
-import { Search, Filter, Plus, Edit2, Trash2, AlertCircle, RefreshCw, ExternalLink, Package } from "lucide-react";
+import { Search, Filter, Plus, Edit2, Trash2, AlertCircle, RefreshCw, ExternalLink, Package, Calendar, AlertTriangle } from "lucide-react";
 import styles from "./InventoryPage.module.css";
 import clsx from "clsx";
 import { useApp } from "../context/AppContext";
@@ -30,7 +30,10 @@ export default function InventoryPage() {
         conversionFactor: "1000",
         _packetWeight: "",
         _packetUnitMult: 1000,
-        _customUnit: ""
+        _customUnit: "",
+        expiryDate: "",
+        batchNo: "",
+        hsnCode: ""
     });
     const [adding, setAdding] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -65,7 +68,10 @@ export default function InventoryPage() {
             baseUnit: item.baseUnit || "gram",
             displayUnit: item.displayUnit || "kilogram",
             conversionFactor: factor.toString(),
-            _customUnit: item.displayUnit && !['kilogram', 'gram', 'litre', 'millilitre', 'piece', 'packet', 'box'].includes(item.displayUnit) ? item.displayUnit : ""
+            _customUnit: item.displayUnit && !['kilogram', 'gram', 'litre', 'millilitre', 'piece', 'packet', 'box'].includes(item.displayUnit) ? item.displayUnit : "",
+            expiryDate: item.expiryDate || "",
+            batchNo: item.batchNo || "",
+            hsnCode: item.hsnCode || ""
         });
         setIsAddOpen(true);
     };
@@ -118,11 +124,14 @@ export default function InventoryPage() {
             low: totalBaseQty < (10 * factor),
             baseUnit: newItem.baseUnit,
             displayUnit: finalDisplayUnit,
-            conversionFactor: factor
+            conversionFactor: factor,
+            expiryDate: newItem.expiryDate,
+            batchNo: newItem.batchNo,
+            hsnCode: newItem.hsnCode
         };
 
         setIsAddOpen(false);
-        setNewItem({ name: "", sku: "", qty: "", price: "", baseUnit: "gram", displayUnit: "kilogram", conversionFactor: "1000", _customUnit: "" });
+        setNewItem({ name: "", sku: "", qty: "", price: "", baseUnit: "gram", displayUnit: "kilogram", conversionFactor: "1000", _customUnit: "", expiryDate: "", batchNo: "", hsnCode: "" });
 
         // Trigger Success Popup
         setShowSuccess(true);
@@ -141,7 +150,10 @@ export default function InventoryPage() {
                         newItem.price,
                         newItem.baseUnit,
                         finalDisplayUnit,
-                        factor
+                        factor,
+                        newItem.expiryDate || '',
+                        newItem.batchNo || '',
+                        newItem.hsnCode || ''
                     ]);
                 }
             } else {
@@ -157,7 +169,10 @@ export default function InventoryPage() {
                         price: newItem.price,
                         baseUnit: newItem.baseUnit,
                         displayUnit: finalDisplayUnit,
-                        conversionFactor: factor
+                        conversionFactor: factor,
+                        expiryDate: newItem.expiryDate,
+                        batchNo: newItem.batchNo,
+                        hsnCode: newItem.hsnCode
                     });
                 }
             }
@@ -174,6 +189,15 @@ export default function InventoryPage() {
         }
     };
 
+    // Helper: Check if item expires within 30 days
+    const isExpiringSoon = (expiryDate) => {
+        if (!expiryDate) return false;
+        const expiry = new Date(expiryDate);
+        const today = new Date();
+        const diffDays = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+        return diffDays >= 0 && diffDays <= 30;
+    };
+
     const filtered = inventory.filter(item => {
         // 1. Search Filter
         const matchesSearch = item?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -184,6 +208,7 @@ export default function InventoryPage() {
         // 2. Tab Filter
         if (activeTab === 'all') return true;
         if (activeTab === 'low') return item.low;
+        if (activeTab === 'expiring') return isExpiringSoon(item.expiryDate);
         if (activeTab === 'grocery') return item.baseUnit === 'gram';
         if (activeTab === 'liquids') return item.baseUnit === 'millilitre';
         if (activeTab === 'others') return item.baseUnit === 'piece';
@@ -251,10 +276,11 @@ export default function InventoryPage() {
                     <div className="flex gap-2 overflow-x-auto pb-2 mb-4 no-scrollbar">
                         {[
                             { id: 'all', label: 'All Items' },
-                            { id: 'grocery', label: 'Grocery (Weight)' },
+                            { id: 'expiring', label: '⚠️ Expiring Soon' },
+                            { id: 'low', label: 'Low Stock' },
+                            { id: 'grocery', label: 'Grocery' },
                             { id: 'liquids', label: 'Liquids' },
-                            { id: 'others', label: 'Packets/Count' },
-                            { id: 'low', label: 'Low Stock' }
+                            { id: 'others', label: 'Packets/Count' }
                         ].map(tab => (
                             <button
                                 key={tab.id}
@@ -515,6 +541,42 @@ export default function InventoryPage() {
                             className={styles.modalInput}
                             onChange={(e) => setNewItem({ ...newItem, sku: e.target.value })}
                         />
+                    </div>
+
+                    {/* Phase 4: Additional Fields */}
+                    <div className="border-t border-white/10 pt-4 mt-2">
+                        <p className="text-xs text-white/40 mb-3 flex items-center gap-1">
+                            <Calendar size={12} /> Optional: Tracking Information
+                        </p>
+                        <div className={styles.rowGroup}>
+                            <div>
+                                <label className={styles.modalLabel}>Expiry Date</label>
+                                <Input
+                                    type="date"
+                                    value={newItem.expiryDate}
+                                    className={styles.modalInput}
+                                    onChange={(e) => setNewItem({ ...newItem, expiryDate: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className={styles.modalLabel}>Batch No.</label>
+                                <Input
+                                    placeholder="e.g. B001"
+                                    value={newItem.batchNo}
+                                    className={styles.modalInput}
+                                    onChange={(e) => setNewItem({ ...newItem, batchNo: e.target.value })}
+                                />
+                            </div>
+                        </div>
+                        <div className="mt-3">
+                            <label className={styles.modalLabel}>HSN Code</label>
+                            <Input
+                                placeholder="e.g. 1006 (for Rice)"
+                                value={newItem.hsnCode}
+                                className={styles.modalInput}
+                                onChange={(e) => setNewItem({ ...newItem, hsnCode: e.target.value })}
+                            />
+                        </div>
                     </div>
 
                     <Button
