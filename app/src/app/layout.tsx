@@ -9,7 +9,14 @@ export const metadata: Metadata = {
   title: "TrackEezy",
   description: "Stock Management Made Easy",
   manifest: "/manifest.json",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0",
+};
+
+export const viewport = {
+  themeColor: "#000000",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 import { AuthProvider } from "@/components/AuthProvider";
