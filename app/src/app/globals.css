@@ -108,8 +108,8 @@ h4 {
 
   body {
     background-color: white !important;
-    -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
   /* Hide everything by default using visibility */
@@ -214,121 +214,5 @@ h4 {
     border-bottom: none;
     padding-top: 5px;
     padding-bottom: 5px;
-  }
-}
-
-/* Print Styles from Billing Module (Moved here to avoid CSS Module Purity Error) */
-@media print {
-
-  /* Hide everything on screen */
-  body * {
-    visibility: hidden;
-  }
-
-  /* Target the Receipt only */
-  .receipt,
-  .receipt * {
-    visibility: visible;
-    display: block !important;
-  }
-
-  .receipt {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
-    color: black;
-    line-height: 1.2;
-  }
-
-  .receiptHeader {
-    text-align: center;
-    margin-bottom: 10px;
-  }
-
-  .receiptTitle {
-    font-size: 16px;
-    font-weight: bold;
-    text-transform: uppercase;
-    margin-bottom: 2px;
-  }
-
-  .receiptAddress {
-    font-size: 12px;
-    margin-bottom: 2px;
-  }
-
-  .receiptSubText {
-    font-size: 10px;
-    font-style: italic;
-    margin-bottom: 5px;
-  }
-
-  .divider {
-    border-top: 1px dashed black;
-    margin: 5px 0;
-  }
-
-  .doubleDivider {
-    border-top: 1px double black;
-    border-bottom: 1px double black;
-    margin: 5px 0;
-    height: 3px;
-  }
-
-  .receiptRow {
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .infoRow {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 2px;
-  }
-
-  .itemTable {
-    width: 100%;
-    text-align: left;
-    border-collapse: collapse;
-  }
-
-  .itemTable th {
-    border-bottom: 1px dashed black;
-    padding-bottom: 5px;
-    font-weight: normal;
-  }
-
-  .itemTable td {
-    padding: 4px 0;
-  }
-
-  .alignRight {
-    text-align: right;
-  }
-
-  .totalSection {
-    margin-top: 10px;
-    border-top: 1px dashed black;
-    padding-top: 5px;
-  }
-
-  .netPayable {
-    border-top: 1px dashed black;
-    border-bottom: 1px dashed black;
-    padding: 5px 0;
-    margin: 5px 0;
-    font-size: 14px;
-    font-weight: bold;
-  }
-
-  .footer {
-    text-align: center;
-    margin-top: 10px;
-    font-size: 10px;
   }
 }
