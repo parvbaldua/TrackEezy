@@ -8,8 +8,10 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_CLIENT_ID_HERE";
 
 // Force Cache Bust Debugging
-window.TRACKEEZY_VERSION = "1.1.0-ReportsFixed";
-console.log("%cTrackEezy Version: " + window.TRACKEEZY_VERSION, "background: #222; color: #bada55; padding: 4px; border-radius: 4px;");
+window.BIZNEX_VERSION = "1.0.0-BijNex";
+console.log("%cApp Version: " + window.BIZNEX_VERSION, "background: #222; color: #bada55; padding: 4px; border-radius: 4px;");
+
+
 
 ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>

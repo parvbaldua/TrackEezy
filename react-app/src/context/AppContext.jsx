@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useAuth } from "./AuthProvider";
 import { GoogleSheetsService } from "../services/sheets";
 import { useOffline } from "./OfflineContext";
@@ -18,157 +18,133 @@ export function AppProvider({ children }) {
     const [lastError, setLastError] = useState(null);
     const [inventory, setInventory] = useState([]);
 
-    useEffect(() => {
-        const init = async () => {
-            const savedName = localStorage.getItem("trackeezy_shop_name");
-            const savedAddress = localStorage.getItem("trackeezy_shop_address");
-            const savedPhone = localStorage.getItem("trackeezy_shop_phone");
-            const savedGstin = localStorage.getItem("trackeezy_shop_gstin");
-            const savedUrl = localStorage.getItem("trackeezy_sheet_url");
+    // Function to read config from storage
+    const readConfigFromStorage = useCallback(() => {
+        let savedName = localStorage.getItem("bijnex_shop_name");
+        let savedAddress = localStorage.getItem("bijnex_shop_address");
+        let savedPhone = localStorage.getItem("bijnex_shop_phone");
+        let savedGstin = localStorage.getItem("bijnex_shop_gstin");
+        let savedUrl = localStorage.getItem("bijnex_sheet_url");
 
-            if (savedName) setShopName(savedName);
-            if (savedAddress) setShopAddress(savedAddress);
-            if (savedPhone) setShopPhone(savedPhone);
-            if (savedGstin) setShopGstin(savedGstin);
+        // AUTO-MIGRATE: If bijnex keys are missing, check biznex keys (from the revert)
+        if (!savedUrl) {
+            const legacyUrl = localStorage.getItem("biznex_sheet_url");
+            if (legacyUrl) {
+                console.log("Migrating legacy Biznex keys to BijNex...");
+                savedName = localStorage.getItem("biznex_shop_name");
+                savedAddress = localStorage.getItem("biznex_shop_address");
+                savedPhone = localStorage.getItem("biznex_shop_phone");
+                savedGstin = localStorage.getItem("biznex_shop_gstin");
+                savedUrl = legacyUrl;
 
-            if (savedUrl) {
-                setSheetUrl(savedUrl);
-                setIsConfigured(true);
+                // Save to new keys
+                localStorage.setItem("bijnex_shop_name", savedName || "");
+                localStorage.setItem("bijnex_sheet_url", savedUrl);
+                if (savedAddress) localStorage.setItem("bijnex_shop_address", savedAddress);
+                if (savedPhone) localStorage.setItem("bijnex_shop_phone", savedPhone);
+                if (savedGstin) localStorage.setItem("bijnex_shop_gstin", savedGstin);
             }
-            setLoading(false);
-        };
-        init();
+        }
+
+        if (savedName) setShopName(savedName);
+        if (savedAddress) setShopAddress(savedAddress);
+        if (savedPhone) setShopPhone(savedPhone);
+        if (savedGstin) setShopGstin(savedGstin);
+
+        if (savedUrl) {
+            setSheetUrl(savedUrl);
+            setIsConfigured(true);
+            return true;
+        }
+        return false;
     }, []);
 
-    // Fetch only when URL AND Access Token are ready
+    // Initial load from storage
     useEffect(() => {
-        setLastError(null); // Clear error on deps change
-        if (accessToken && !sheetUrl) {
-            setLastError("No Google Sheet connected. Please go to Profile and connect a sheet.");
-            setInventory([]);
-            return;
-        }
+        readConfigFromStorage();
+        setLoading(false);
+    }, [readConfigFromStorage]);
 
-        if (sheetUrl && accessToken) {
-            fetchInventoryInternal(sheetUrl);
-        } else {
-            setInventory([]);
-        }
-    }, [sheetUrl, accessToken]);
-
-    // Offline Sync Handler
-    const { syncPendingOperations } = useOffline();
-
-    useEffect(() => {
-        const handleSync = async () => {
-            if (!accessToken || !sheetUrl) return;
-
-            console.log("Processing offline sync queue...");
-            const spreadsheetId = getSheetId(sheetUrl);
-
-            const result = await syncPendingOperations(async (op) => {
-                console.log("Syncing operation:", op.type);
-                switch (op.type) {
-                    case 'RECORD_SALE':
-                        // data: { ...saleDetails }
-                        await GoogleSheetsService.recordSale(accessToken, spreadsheetId, op.data);
-                        break;
-                    case 'DEDUCT_STOCK':
-                        // data: [ { name, qty }, ... ]
-                        await GoogleSheetsService.deductStock(accessToken, spreadsheetId, op.data);
-                        break;
-                    case 'ADD_STOCK':
-                        // data: [ ...rowValues ]
-                        await GoogleSheetsService.addStock(accessToken, spreadsheetId, op.data);
-                        break;
-                    default:
-                        console.warn("Unknown sync operation:", op.type);
-                }
-            });
-
-            if (result.success > 0) {
-                console.log(`Sync completed: ${result.success} success, ${result.failed} failed`);
-                fetchInventoryInternal(sheetUrl); // Refresh inventory after sync
-            }
-        };
-
-        window.addEventListener('sync-pending', handleSync);
-        return () => window.removeEventListener('sync-pending', handleSync);
-    }, [accessToken, sheetUrl, syncPendingOperations]);
-
-    const fetchInventoryInternal = async (url) => {
-        if (!url || !accessToken) return;
+    const getSheetId = () => {
+        if (!sheetUrl) return null;
         try {
-            const spreadsheetId = getSheetId(url);
-            console.log("AppContext: Calling GoogleSheetsService.getInventory", { spreadsheetId });
-            const rows = await GoogleSheetsService.getInventory(accessToken, spreadsheetId);
-
-            if (rows) {
-                const items = rows.map((row, i) => ({
-                    id: i,
-                    name: row[0],
-                    sku: row[1],
-                    qty: parseFloat(String(row[2] || "0").replace(/,/g, '')) || 0,
-                    price: parseFloat(String(row[3] || "0").replace(/,/g, '')) || 0,
-                    // Fix: Check if Display Qty < 10
-                    low: (parseFloat(String(row[2] || "0").replace(/,/g, '')) || 0) < (10 * (parseFloat(String(row[6] || "1000").replace(/,/g, '')) || 1000)),
-                    // New Unit Fields
-                    baseUnit: row[4] || "gram",
-                    displayUnit: row[5] || "kilogram",
-                    conversionFactor: parseFloat(String(row[6] || "1000").replace(/,/g, '')) || 1000,
-                    // Phase 4: Extended fields
-                    expiryDate: row[7] || '', // Column H
-                    batchNo: row[8] || '',    // Column I
-                    hsnCode: row[9] || ''     // Column J
-                }));
-                console.log("AppContext: Parsed Items:", items.length);
-                setInventory(items.reverse());
-                setLastError(null); // Success
-            } else {
-                console.log("AppContext: No rows returned");
-                setInventory([]);
-            }
-        } catch (error) {
-            console.error("AppContext Fetch Error", error);
-            if (error.message === "UNAUTHORIZED") {
-                setLastError("Session Expired: Please Log Out and Sign In again.");
-                alert("Your Google Session has expired. Please Log Out and Sign In again in the Profile page.");
-            } else {
-                setLastError(`Sync Error: ${error.message}`);
-            }
+            const match = sheetUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
+            return match ? match[1] : null;
+        } catch (e) {
+            console.error("Invalid Sheet URL", e);
+            return null;
         }
     };
 
-    const fetchInventory = async () => {
-        await fetchInventoryInternal(sheetUrl);
+    const fetchInventory = useCallback(async () => {
+        if (!isConfigured || !sheetUrl || !accessToken) return;
+
+        const sheetId = getSheetId();
+        if (!sheetId) return;
+
+        try {
+            setLoading(true);
+            const data = await GoogleSheetsService.getInventory(accessToken, sheetId);
+            setInventory(data);
+            setLastError(null);
+            return data;
+        } catch (error) {
+            console.error("Failed to fetch inventory:", error);
+            setLastError("Failed to sync with Google Sheets");
+        } finally {
+            setLoading(false);
+        }
+    }, [isConfigured, sheetUrl, accessToken]);
+
+    const addInventoryItem = async (item) => {
+        const sheetId = getSheetId();
+        if (!sheetId || !accessToken) return;
+        try {
+            await GoogleSheetsService.addItem(accessToken, sheetId, item);
+            await fetchInventory(); // Refresh
+        } catch (error) {
+            console.error("Failed to add item:", error);
+            throw error;
+        }
     };
 
-    const addInventoryItem = (item) => {
-        // Shared Optimistic Update
-        setInventory(prev => [item, ...prev]);
+    const updateInventoryItem = async (updatedItem) => {
+        const sheetId = getSheetId();
+        if (!sheetId || !accessToken) return;
+        try {
+            await GoogleSheetsService.updateItem(accessToken, sheetId, updatedItem);
+            await fetchInventory(); // Refresh
+        } catch (error) {
+            console.error("Failed to update item:", error);
+            throw error;
+        }
     };
 
-    const updateInventoryItem = (updatedItem) => {
-        setInventory(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item));
+    const removeInventoryItem = async (itemId) => {
+        const sheetId = getSheetId();
+        if (!sheetId || !accessToken) return;
+        try {
+            await GoogleSheetsService.deleteItem(accessToken, sheetId, itemId);
+            await fetchInventory(); // Refresh
+        } catch (error) {
+            console.error("Failed to delete item:", error);
+            throw error;
+        }
     };
 
-    const removeInventoryItem = (itemId) => {
-        setInventory(prev => prev.filter(item => item.id !== itemId));
-    };
-
-    // Helper to get ID
-    const getSheetId = (url) => {
-        if (!url) return "";
-        const parts = url.split("/d/");
-        return parts[1] ? parts[1].split('/')[0] : url;
-    };
+    // Load inventory on startup if configured
+    useEffect(() => {
+        if (isConfigured && accessToken) {
+            fetchInventory();
+        }
+    }, [isConfigured, accessToken, fetchInventory]);
 
     const saveConfig = (name, url, address, phone, gstin) => {
-        localStorage.setItem("trackeezy_shop_name", name);
-        localStorage.setItem("trackeezy_sheet_url", url);
-        if (address) localStorage.setItem("trackeezy_shop_address", address);
-        if (phone) localStorage.setItem("trackeezy_shop_phone", phone);
-        if (gstin) localStorage.setItem("trackeezy_shop_gstin", gstin);
+        localStorage.setItem("bijnex_shop_name", name);
+        localStorage.setItem("bijnex_sheet_url", url);
+        if (address) localStorage.setItem("bijnex_shop_address", address);
+        if (phone) localStorage.setItem("bijnex_shop_phone", phone);
+        if (gstin) localStorage.setItem("bijnex_shop_gstin", gstin);
 
         setShopName(name);
         setSheetUrl(url);
@@ -185,7 +161,8 @@ export function AppProvider({ children }) {
     return (
         <AppContext.Provider value={{
             shopName, shopAddress, shopPhone, shopGstin,
-            sheetUrl, isConfigured, saveConfig, loading, inventory, fetchInventory, addInventoryItem, updateInventoryItem, removeInventoryItem, lastError, getSheetId
+            sheetUrl, isConfigured, saveConfig, loading, inventory, fetchInventory, addInventoryItem, updateInventoryItem, removeInventoryItem, lastError, getSheetId,
+            refreshConfig: readConfigFromStorage
         }}>
             {children}
         </AppContext.Provider>

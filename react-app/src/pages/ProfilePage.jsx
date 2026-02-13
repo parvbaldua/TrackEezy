@@ -7,23 +7,25 @@ import { useApp } from "../context/AppContext";
 import { GoogleSheetsService } from "../services/sheets";
 import { useNavigate } from "react-router-dom";
 import LanguageSelector from "../components/ui/LanguageSelector";
+import { useTranslation } from "../context/LanguageContext";
 
 export default function ProfilePage() {
     const navigate = useNavigate();
     const { user, login, logout, accessToken, isAdmin } = useAuth();
     const { sheetUrl, saveConfig, shopName, shopAddress, shopPhone, shopGstin } = useApp();
     const [isEditing, setIsEditing] = useState(false);
+    const t = useTranslation();
 
     // Local state for editing
     const [name, setName] = useState(shopName || "");
     const [address, setAddress] = useState(shopAddress || "");
     const [phone, setPhone] = useState(shopPhone || "");
     const [gstin, setGstin] = useState(shopGstin || "");
-    const [upiId, setUpiId] = useState(localStorage.getItem('trackeezy_upi_id') || "");
+    const [upiId, setUpiId] = useState(localStorage.getItem('bijnex_upi_id') || "");
 
     const menuItems = [
-        { icon: Database, label: "Data Sync", desc: "Google Sheets status" },
-        { icon: Settings, label: "App Settings", desc: "Theme, Language" },
+        { icon: Database, label: t('profile.databaseSync'), desc: "Google Sheets status" },
+        { icon: Settings, label: "App Settings", desc: "Theme, Language" }, // Note: keys might be missing for "App Settings", leaving as is if not in en.json
         { icon: Share2, label: "Share App", desc: "Invite other shop owners" },
         { icon: HelpCircle, label: "Help & Support", desc: "FAQs, Contact Us" },
     ];
@@ -32,16 +34,16 @@ export default function ProfilePage() {
         saveConfig(name, sheetUrl, address, phone, gstin);
         // Save UPI ID separately
         if (upiId) {
-            localStorage.setItem('trackeezy_upi_id', upiId);
+            localStorage.setItem('bijnex_upi_id', upiId);
         } else {
-            localStorage.removeItem('trackeezy_upi_id');
+            localStorage.removeItem('bijnex_upi_id');
         }
         setIsEditing(false);
     };
 
     return (
         <div className={styles.container}>
-            <h1 className={styles.title}>Profile</h1>
+            <h1 className={styles.title}>{t('profile.title')}</h1>
 
             {/* Profile Card */}
             <Card className={styles.profileCard}>
@@ -57,7 +59,7 @@ export default function ProfilePage() {
                             <p className={styles.role}>{user.email}</p>
                             <span className={styles.status}>
                                 <span className="w-2 h-2 rounded-full bg-[hsl(var(--primary))] animate-pulse" />
-                                Connected to Google
+                                {t('profile.connectedToGoogle')}
                             </span>
                         </div>
                     </>
@@ -65,7 +67,7 @@ export default function ProfilePage() {
                     <div className="flex flex-col items-start gap-4 w-full">
                         <p className="text-white font-semibold">Sign in to sync with Google Sheets</p>
                         <Button onClick={() => login()} variant="primary" className="w-full sm:w-auto">
-                            Sign In with Google
+                            {t('profile.signIn')}
                         </Button>
                     </div>
                 )}
@@ -83,8 +85,8 @@ export default function ProfilePage() {
                                 <Shield size={20} />
                             </div>
                             <div>
-                                <h3 className={styles.settingLabel}>Admin Panel</h3>
-                                <p className={styles.settingDesc}>Manage users & settings</p>
+                                <h3 className={styles.settingLabel}>{t('profile.adminPanel')}</h3>
+                                <p className={styles.settingDesc}>{t('profile.manageUsers')}</p>
                             </div>
                         </div>
                         <ChevronRight size={18} className="text-white/30" />
@@ -101,7 +103,7 @@ export default function ProfilePage() {
                                 <Settings size={20} />
                             </div>
                             <div>
-                                <h3 className={styles.settingLabel}>Shop Details</h3>
+                                <h3 className={styles.settingLabel}>{t('profile.shopDetails')}</h3>
                                 <p className={styles.settingDesc}>Address, Phone & GSTIN for Bills</p>
                             </div>
                         </div>
@@ -110,34 +112,34 @@ export default function ProfilePage() {
                             onClick={() => isEditing ? handleSave() : setIsEditing(true)}
                             className="!py-1 !px-3 text-sm h-8 w-full sm:w-auto ml-auto sm:ml-0"
                         >
-                            {isEditing ? <><Save size={14} /> Save</> : "Edit"}
+                            {isEditing ? <><Save size={14} /> {t('common.save')}</> : t('common.edit')}
                         </Button>
                     </div>
 
                     {isEditing ? (
                         <div className="flex flex-col gap-3">
-                            <Input placeholder="Shop Name" value={name} onChange={(e) => setName(e.target.value)} />
-                            <Input placeholder="Shop Address (e.g. 123 Market St, City)" value={address} onChange={(e) => setAddress(e.target.value)} />
-                            <Input placeholder="Phone Number" value={phone} onChange={(e) => setPhone(e.target.value)} />
-                            <Input placeholder="GSTIN (Optional)" value={gstin} onChange={(e) => setGstin(e.target.value)} />
+                            <Input placeholder={t('profile.shopName')} value={name} onChange={(e) => setName(e.target.value)} />
+                            <Input placeholder={t('profile.shopAddress')} value={address} onChange={(e) => setAddress(e.target.value)} />
+                            <Input placeholder={t('profile.phone')} value={phone} onChange={(e) => setPhone(e.target.value)} />
+                            <Input placeholder={t('profile.gstin')} value={gstin} onChange={(e) => setGstin(e.target.value)} />
                             <div className="relative">
                                 <Input
-                                    placeholder="UPI ID (e.g. yourname@upi)"
+                                    placeholder={t('profile.upiId')}
                                     value={upiId}
                                     onChange={(e) => setUpiId(e.target.value)}
                                 />
                                 <p className="text-xs text-white/40 mt-1 flex items-center gap-1">
-                                    <CreditCard size={12} /> For payment QR on bills
+                                    <CreditCard size={12} /> {t('profile.upiHint')}
                                 </p>
                             </div>
                         </div>
                     ) : (
                         <div className="flex flex-col gap-2 p-3 bg-[rgba(255,255,255,0.03)] rounded-md border border-[rgba(255,255,255,0.05)] text-sm">
-                            <div className="flex justify-between"><span className="text-white/50">Name:</span> <span>{shopName || "-"}</span></div>
-                            <div className="flex justify-between"><span className="text-white/50">Address:</span> <span>{shopAddress || "-"}</span></div>
-                            <div className="flex justify-between"><span className="text-white/50">Phone:</span> <span>{shopPhone || "-"}</span></div>
-                            <div className="flex justify-between"><span className="text-white/50">GSTIN:</span> <span>{shopGstin || "-"}</span></div>
-                            <div className="flex justify-between"><span className="text-white/50">UPI ID:</span> <span className="flex items-center gap-1">{upiId || <span className="text-orange-400">Not Set</span>}</span></div>
+                            <div className="flex justify-between"><span className="text-white/50">{t('profile.shopName')}:</span> <span>{shopName || "-"}</span></div>
+                            <div className="flex justify-between"><span className="text-white/50">{t('profile.shopAddress')}:</span> <span>{shopAddress || "-"}</span></div>
+                            <div className="flex justify-between"><span className="text-white/50">{t('profile.phone')}:</span> <span>{shopPhone || "-"}</span></div>
+                            <div className="flex justify-between"><span className="text-white/50">{t('profile.gstin')}:</span> <span>{shopGstin || "-"}</span></div>
+                            <div className="flex justify-between"><span className="text-white/50">{t('profile.upiId')}:</span> <span className="flex items-center gap-1">{upiId || <span className="text-orange-400">Not Set</span>}</span></div>
                         </div>
                     )}
                 </Card>
@@ -151,7 +153,7 @@ export default function ProfilePage() {
                             <Globe size={20} />
                         </div>
                         <div>
-                            <h3 className={styles.settingLabel}>App Language</h3>
+                            <h3 className={styles.settingLabel}>{t('profile.language')}</h3>
                             <p className={styles.settingDesc}>Change display language</p>
                         </div>
                     </div>
@@ -167,7 +169,7 @@ export default function ProfilePage() {
                             <Database size={20} />
                         </div>
                         <div>
-                            <h3 className={styles.settingLabel}>Database Connection</h3>
+                            <h3 className={styles.settingLabel}>{t('profile.databaseSync')}</h3>
                             <p className={styles.settingDesc}>
                                 {sheetUrl ? "Synced with your Google Sheet" : "Link a sheet to enable sync"}
                             </p>
@@ -255,7 +257,7 @@ export default function ProfilePage() {
                                 <LogOut size={20} />
                             </div>
                             <div className={styles.settingText}>
-                                <span className={`${styles.settingLabel} text-[hsl(var(--danger))]`}>Log Out</span>
+                                <span className={`${styles.settingLabel} text-[hsl(var(--danger))]`}>{t('profile.signOut')}</span>
                             </div>
                         </div>
                     </Card>

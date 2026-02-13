@@ -42,7 +42,7 @@ export default function ManualBillingPage() {
     const [pdfFormat, setPdfFormat] = useState("pos"); // 'pos' or 'a4'
 
     // UPI ID for payment QR (stored in localStorage)
-    const [upiId] = useState(localStorage.getItem('trackeezy_upi_id') || '');
+    const [upiId] = useState(localStorage.getItem('bijnex_upi_id') || '');
 
     // Generate UPI Payment Link
     const generateUPILink = (amount) => {
@@ -53,7 +53,7 @@ export default function ManualBillingPage() {
 
     // Load Quick Picks from localStorage
     useEffect(() => {
-        const saved = localStorage.getItem("trackeezy_quick_picks");
+        const saved = localStorage.getItem("bijnex_quick_picks");
         if (saved) {
             try {
                 setQuickPicks(JSON.parse(saved));
@@ -66,7 +66,7 @@ export default function ManualBillingPage() {
     // Save Quick Picks to localStorage
     useEffect(() => {
         if (quickPicks.length > 0) {
-            localStorage.setItem("trackeezy_quick_picks", JSON.stringify(quickPicks));
+            localStorage.setItem("bijnex_quick_picks", JSON.stringify(quickPicks));
         }
     }, [quickPicks]);
 

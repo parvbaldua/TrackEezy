@@ -128,6 +128,10 @@
         "accessDenied": "एक्सेस नहीं है",
         "notAdmin": "आपके पास एडमिन अधिकार नहीं हैं"
     },
+    "sidebar": {
+        "myShop": "मेरी दुकान",
+        "storeOwner": "दुकान मालिक"
+    },
     "languages": {
         "english": "English",
         "hindi": "हिंदी",

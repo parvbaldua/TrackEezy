@@ -22,13 +22,13 @@ const LanguageContext = createContext();
 export function LanguageProvider({ children }) {
     // Initialize from localStorage or default to English
     const [language, setLanguage] = useState(() => {
-        const saved = localStorage.getItem('trackeezy_language');
+        const saved = localStorage.getItem('bijnex_language');
         return saved && LANGUAGES[saved] ? saved : 'en';
     });
 
     // Save language preference to localStorage
     useEffect(() => {
-        localStorage.setItem('trackeezy_language', language);
+        localStorage.setItem('bijnex_language', language);
         // Set document language for accessibility
         document.documentElement.lang = language;
     }, [language]);

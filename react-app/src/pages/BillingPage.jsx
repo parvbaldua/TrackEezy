@@ -8,11 +8,13 @@ import { QRCodeSVG } from "qrcode.react";
 import clsx from "clsx";
 import { useAuth } from "../context/AuthProvider";
 import { GoogleSheetsService } from "../services/sheets";
+import { useTranslation } from "../context/LanguageContext";
 
 export default function BillingPage() {
     const { inventory, shopName, shopAddress, shopPhone, shopGstin, sheetUrl, fetchInventory, getSheetId } = useApp();
     const { accessToken } = useAuth();
     const { isOnline, queueOperation } = useOffline();
+    const t = useTranslation();
 
     const [searchTerm, setSearchTerm] = useState("");
 
@@ -21,7 +23,7 @@ export default function BillingPage() {
     const [isListening, setIsListening] = useState(false);
 
     // UPI ID for payment QR (stored in localStorage)
-    const [upiId, setUpiId] = useState(localStorage.getItem('trackeezy_upi_id') || '');
+    const [upiId, setUpiId] = useState(localStorage.getItem('bijnex_upi_id') || '');
 
     // Voice Search using Web Speech API (Zero Cost)
     const startVoiceSearch = () => {
@@ -203,9 +205,9 @@ export default function BillingPage() {
         });
 
         message += `------------------------------\n`;
-        message += `*Subtotal:* ₹${totalAmount.toFixed(2)}\n`;
-        message += `*GST (18%):* ₹${gstAmount.toFixed(2)}\n`;
-        message += `*TOTAL:* ₹${netAmount.toFixed(2)}\n`;
+        message += `*${t('billing.subtotal')}:* ₹${totalAmount.toFixed(2)}\n`;
+        message += `*${t('billing.gst')} (18%):* ₹${gstAmount.toFixed(2)}\n`;
+        message += `*${t('billing.total')}:* ₹${netAmount.toFixed(2)}\n`;
         message += `------------------------------\n`;
         message += `Thank you for shopping!`;
 
@@ -264,11 +266,11 @@ export default function BillingPage() {
     };
 
     const processSale = async () => {
-        if (!confirm("Confirm Sale? This will deduct stock from the Google Sheet.")) return;
+        if (!confirm(t('common.confirm') + "? This will deduct stock from the Google Sheet.")) return;
 
         try {
             if (!sheetUrl) {
-                alert("No Google Sheet connected! Please configure it in Profile.");
+                alert(t('home.sheetNotConnected') + "! Please configure it in Profile.");
                 return;
             }
 
@@ -321,7 +323,7 @@ export default function BillingPage() {
                     items: soldItems
                 });
 
-                alert("Stock Updated Successfully!");
+                alert(t('common.success') + "!");
                 setCart([]); // Clear cart
                 localStorage.removeItem("cart_data");
 
@@ -344,7 +346,7 @@ export default function BillingPage() {
         <div className={styles.container}>
             <div className={styles.header}>
                 <div className="flex flex-col">
-                    <h1 className={styles.title}>Billing & POS</h1>
+                    <h1 className={styles.title}>{t('billing.title')}</h1>
                 </div>
             </div>
 
@@ -355,7 +357,7 @@ export default function BillingPage() {
                         <div className={styles.searchWrapper}>
                             <Search className={styles.searchIcon} size={18} />
                             <Input
-                                placeholder="Search products..."
+                                placeholder={t('billing.searchProducts')}
                                 className={styles.searchInput}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -366,7 +368,7 @@ export default function BillingPage() {
                             <button
                                 onClick={startVoiceSearch}
                                 className={`absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-all ${isListening ? 'bg-red-500 text-white animate-pulse' : 'bg-white/10 text-white/50 hover:bg-white/20 hover:text-white'}`}
-                                title="Voice Search (Hindi)"
+                                title={t('billing.voiceSearch')}
                             >
                                 {isListening ? <MicOff size={16} /> : <Mic size={16} />}
                             </button>
@@ -397,7 +399,7 @@ export default function BillingPage() {
                                             </div>
                                         ))
                                     ) : (
-                                        <div className="p-3 text-sm text-white/50 text-center">No products found</div>
+                                        <div className="p-3 text-sm text-white/50 text-center">{t('inventory.noProducts')}</div>
                                     )}
                                 </div>
                             )}
@@ -415,11 +417,11 @@ export default function BillingPage() {
                                     <span className={styles.productPrice}>₹{product.price}</span>
                                     {cart.find(item => item.id === product.id) ? (
                                         <span className="text-[10px] text-green-400 font-bold bg-green-900/30 px-2 py-0.5 rounded-full">
-                                            Added ( {cart.find(c => c.id === product.id)?.qty} {product.displayUnit})
+                                            {t('common.add')} ( {cart.find(c => c.id === product.id)?.qty} {product.displayUnit})
                                         </span>
                                     ) : (
                                         <span className={styles.productStock}>
-                                            Stock: {parseFloat((product.qty / (product.conversionFactor || 1)).toFixed(2))} {product.displayUnit}
+                                            {t('inventory.inStock')}: {parseFloat((product.qty / (product.conversionFactor || 1)).toFixed(2))} {product.displayUnit}
                                         </span>
                                     )}
                                 </div>
@@ -435,11 +437,11 @@ export default function BillingPage() {
                     {!isMobileCartOpen && totalItems > 0 && (
                         <div className={styles.floatingCartBar} onClick={() => setIsMobileCartOpen(true)}>
                             <div className="flex flex-col">
-                                <span className="text-xs font-medium text-white/80">{totalItems} Items</span>
+                                <span className="text-xs font-medium text-white/80">{totalItems} {t('billing.items')}</span>
                                 <span className="font-bold text-base">₹{totalAmount.toFixed(0)}</span>
                             </div>
                             <div className="flex items-center gap-2 font-semibold text-sm bg-black/20 px-3 py-1.5 rounded-full">
-                                View Bill <ChevronUp size={16} />
+                                {t('billing.viewBill')} <ChevronUp size={16} />
                             </div>
                         </div>
                     )}
@@ -449,8 +451,8 @@ export default function BillingPage() {
                     <div className={styles.cartHeader}>
                         <div className={styles.cartHeaderContent}>
                             <ShoppingCart size={20} className="text-primary" />
-                            <span className={styles.cartTitle}>Current Bill</span>
-                            <span className="text-xs bg-white/10 px-2 py-0.5 rounded-full text-white/70">{totalItems} items</span>
+                            <span className={styles.cartTitle}>{t('billing.currentBill')}</span>
+                            <span className="text-xs bg-white/10 px-2 py-0.5 rounded-full text-white/70">{totalItems} {t('billing.items')}</span>
                         </div>
                         {/* Mobile Close Button */}
                         <div className="lg:hidden text-white hover:bg-white/10 p-2 rounded-full cursor-pointer" onClick={() => setIsMobileCartOpen(false)}>
@@ -462,7 +464,7 @@ export default function BillingPage() {
                         {cart.length === 0 ? (
                             <div className={styles.emptyCart}>
                                 <ShoppingCart size={48} />
-                                <p>Cart is empty</p>
+                                <p>{t('billing.emptyCart')}</p>
                             </div>
                         ) : (
                             cart.map(item => (
@@ -493,15 +495,15 @@ export default function BillingPage() {
                     <div className={styles.billSummary}>
 
                         <div className={styles.summaryRow}>
-                            <span>Subtotal</span>
+                            <span>{t('billing.subtotal')}</span>
                             <span>₹{totalAmount.toFixed(2)}</span>
                         </div>
                         <div className={styles.summaryRow}>
-                            <span>Tax (18%)</span>
+                            <span>{t('billing.tax')} (18%)</span>
                             <span>₹{gstAmount.toFixed(2)}</span>
                         </div>
                         <div className={styles.totalRow}>
-                            <span>Total</span>
+                            <span>{t('billing.total')}</span>
                             <span>₹{netAmount.toFixed(2)}</span>
                         </div>
 
@@ -513,25 +515,25 @@ export default function BillingPage() {
                                     size={100}
                                     className="mx-auto"
                                 />
-                                <p className="text-xs text-gray-600 mt-2">Scan to Pay ₹{netAmount.toFixed(0)}</p>
+                                <p className="text-xs text-gray-600 mt-2">{t('billing.scanQR')} ₹{netAmount.toFixed(0)}</p>
                             </div>
                         )}
 
                         {!upiId && (
                             <p className="text-xs text-white/40 text-center mt-2">
-                                Add UPI ID in Profile to show payment QR
+                                {t('billing.addUPI')}
                             </p>
                         )}
 
                         <div className={styles.actionButtons}>
                             <Button variant="secondary" className="w-full" disabled={cart.length === 0} onClick={handlePrint}>
-                                <Printer size={18} /> Print
+                                <Printer size={18} /> {t('billing.print')}
                             </Button>
                             <Button className="w-full !bg-[#25D366] hover:!bg-[#128C7E]" disabled={cart.length === 0} onClick={handleWhatsApp}>
-                                <Share2 size={18} /> WhatsApp
+                                <Share2 size={18} /> {t('billing.whatsapp')}
                             </Button>
                             <Button className="w-full !bg-blue-600 hover:!bg-blue-700 col-span-2" disabled={cart.length === 0} onClick={processSale}>
-                                Complete Sale (Update Stock)
+                                {t('billing.completeSale')}
                             </Button>
                         </div>
                     </div>
@@ -549,8 +551,8 @@ export default function BillingPage() {
                             <h2>{shopName || "Fresh Mart Grocery"}</h2>
                             <p>
                                 {shopAddress || "123 Market Street, City Center"}<br />
-                                Phone: {shopPhone || "+91 98765 43210"}<br />
-                                GSTIN: {shopGstin || "Not Available"}
+                                {t('profile.phone')}: {shopPhone || "+91 98765 43210"}<br />
+                                {t('profile.gstin')}: {shopGstin || "Not Available"}
                             </p>
                         </div>
                         <div className="invoice-meta">
@@ -568,9 +570,9 @@ export default function BillingPage() {
                         <thead>
                             <tr>
                                 <th style={{ width: '40%' }}>Item Description</th>
-                                <th className="text-center">Qty</th>
-                                <th className="text-right">Price (₹)</th>
-                                <th className="text-right">Total (₹)</th>
+                                <th className="text-center">{t('inventory.quantity')}</th>
+                                <th className="text-right">{t('inventory.price')} (₹)</th>
+                                <th className="text-right">{t('billing.total')} (₹)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -591,17 +593,17 @@ export default function BillingPage() {
                             {/* Totals */}
                             <tr className="subtotal-row">
                                 <td colSpan={2}></td>
-                                <td className="text-right">Subtotal:</td>
+                                <td className="text-right">{t('billing.subtotal')}:</td>
                                 <td className="text-right">{totalAmount.toFixed(2)}</td>
                             </tr>
                             <tr className="subtotal-row">
                                 <td colSpan={2}></td>
-                                <td className="text-right">Tax (18% GST):</td>
+                                <td className="text-right">{t('billing.tax')} (18% GST):</td>
                                 <td className="text-right">{gstAmount.toFixed(2)}</td>
                             </tr>
                             <tr className="total-row">
                                 <td colSpan={2}></td>
-                                <td className="text-right">Grand Total:</td>
+                                <td className="text-right">{t('billing.total')}:</td>
                                 <td className="text-right">₹{netAmount.toFixed(2)}</td>
                             </tr>
                         </tbody>

@@ -4,14 +4,21 @@ const DRIVE_URL = "https://www.googleapis.com/drive/v3/files";
 
 export const GoogleSheetsService = {
     /**
-     * Search for existing TrackEezy sheets in user's Google Drive
+     * Search for existing BijNex sheets in user's Google Drive
      * Returns array of { id, name, url } or empty array
      */
-    async searchExistingSheets(token) {
+    async searchExistingSheets(token, customQuery = null) {
         try {
-            // Search for spreadsheets with "TrackEezy" in the name
-            const query = encodeURIComponent("name contains 'TrackEezy' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false");
-            const url = `${DRIVE_URL}?q=${query}&fields=files(id,name,webViewLink)&orderBy=modifiedTime desc`;
+            // Default: Search for "BijNex"
+            // If customQuery is provided (e.g. empty string for all), use that.
+            let query = customQuery;
+            if (!query) {
+                // Search for ANY valid inventory sheet variants
+                query = "(name contains 'BijNex' or name contains 'Biznex') and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false";
+            }
+
+            const encodedQuery = encodeURIComponent(query);
+            const url = `${DRIVE_URL}?q=${encodedQuery}&fields=files(id,name,webViewLink)&orderBy=modifiedTime desc`;
 
             const response = await fetch(url, {
                 headers: {
@@ -20,8 +27,9 @@ export const GoogleSheetsService = {
             });
 
             if (!response.ok) {
-                console.error("Drive API Error:", response.status);
-                return [];
+                const errorBody = await response.text();
+                console.error("Drive API Error:", response.status, errorBody);
+                throw new Error(`Drive API Failed: ${response.status} - ${response.statusText}`);
             }
 
             const data = await response.json();
@@ -32,7 +40,7 @@ export const GoogleSheetsService = {
             }));
         } catch (error) {
             console.error("Error searching for sheets:", error);
-            return [];
+            throw error; // Propagate error
         }
     },
 
@@ -194,6 +202,7 @@ export const GoogleSheetsService = {
     async getInventory(token, spreadsheetId) {
         try {
             console.log("Fetching inventory...", { spreadsheetId, token: token?.slice(0, 10) + "..." });
+            // Fetch A2:J to skip headers
             const url = `${BASE_URL}/${spreadsheetId}/values/A2:J`;
             const response = await fetch(url, {
                 headers: {
@@ -213,7 +222,34 @@ export const GoogleSheetsService = {
             const data = await response.json();
             console.log("Inventory Data Received:", data.values?.length || 0, "rows");
             if (data.error) throw new Error(data.error.message);
-            return data.values || [];
+
+            const rows = data.values || [];
+
+            // Map rows to objects
+            // Columns: 0:Name, 1:SKU, 2:Qty, 3:Price, 4:BaseUnit, 5:DisplayUnit, 6:ConvFactor, 7:Expiry, 8:Batch, 9:HSN
+            const inventory = rows.map((row, index) => {
+                if (!row[0]) return null; // Skip empty names
+
+                const factor = parseFloat(row[6]?.toString().replace(/,/g, '')) || 1;
+                const qty = parseFloat(row[2]?.toString().replace(/,/g, '')) || 0;
+
+                return {
+                    id: `${row[1] || 'sku'}-${index}-${Date.now()}`, // Temporary stable ID
+                    name: row[0],
+                    sku: row[1] || "",
+                    qty: qty,
+                    price: parseFloat(row[3]?.toString().replace(/,/g, '')) || 0,
+                    baseUnit: row[4] || "gram",
+                    displayUnit: row[5] || "kilogram",
+                    conversionFactor: factor,
+                    low: (qty / factor) < 10, // Low stock logic
+                    expiryDate: row[7] || "",
+                    batchNo: row[8] || "",
+                    hsnCode: row[9] || ""
+                };
+            }).filter(item => item !== null); // Remove nulls
+
+            return inventory;
         } catch (error) {
             console.error("Error fetching inventory:", error);
             throw error;
@@ -234,7 +270,7 @@ export const GoogleSheetsService = {
                 },
                 body: JSON.stringify({
                     properties: {
-                        title: `${shopName || "My Shop"} - Inventory (TrackEezy)`
+                        title: `${shopName || "My Shop"} - Inventory (BijNex)`
                     },
                     sheets: [
                         {

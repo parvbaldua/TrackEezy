@@ -3,7 +3,7 @@ import { Card, Button, Input } from "../components/ui/Shared";
 import {
     Shield, Users, Settings, Database, Plus, Trash2,
     Save, RefreshCw, UserPlus, ChevronRight, CheckCircle,
-    XCircle, Phone, Mail
+    XCircle, Phone, Mail, Share2, Copy, Link, X
 } from "lucide-react";
 import styles from "./AdminPage.module.css";
 import { useAuth } from "../context/AuthProvider";
@@ -22,6 +22,8 @@ export default function AdminPage() {
     const [newUser, setNewUser] = useState({ name: '', phone: '', email: '', role: 'staff' });
     const [showAddForm, setShowAddForm] = useState(false);
     const [activeTab, setActiveTab] = useState('authorized'); // 'authorized' or 'logins'
+    const [showInviteModal, setShowInviteModal] = useState(false);
+    const [linkCopied, setLinkCopied] = useState(false);
 
     // Redirect non-admin users
     useEffect(() => {
@@ -110,6 +112,48 @@ export default function AdminPage() {
         fetchUserLogins();
     };
 
+    // Generate invite link for staff
+    const getInviteLink = () => {
+        if (!sheetUrl || !shopName) return '';
+        const sheetId = getSheetId(sheetUrl);
+        const encodedShopName = encodeURIComponent(shopName);
+        return `${window.location.origin}/join?shop=${encodedShopName}&sheet=${sheetId}`;
+    };
+
+    const handleCopyLink = async () => {
+        const link = getInviteLink();
+        try {
+            await navigator.clipboard.writeText(link);
+            setLinkCopied(true);
+            setTimeout(() => setLinkCopied(false), 2000);
+        } catch (err) {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = link;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            setLinkCopied(true);
+            setTimeout(() => setLinkCopied(false), 2000);
+        }
+    };
+
+    const handleNativeShare = async () => {
+        const inviteLink = getInviteLink(); // Renamed 'link' to 'inviteLink' as per instruction
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: `Join ${shopName} on BijNex`,
+                    text: `Join our shop's inventory on BijNex! Click to connect automatically:`,
+                    url: inviteLink
+                });
+            } catch (err) {
+                console.log('Share cancelled');
+            }
+        }
+    };
+
     // Non-admin fallback
     if (!isAdmin) {
         return (
@@ -175,6 +219,94 @@ export default function AdminPage() {
                     </div>
                 </Card>
             </div>
+
+            {/* Invite Staff Button */}
+            <Card
+                className="p-4 mb-4 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-colors"
+                onClick={() => setShowInviteModal(true)}
+            >
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
+                        <Share2 size={20} className="text-white" />
+                    </div>
+                    <div>
+                        <p className="text-white font-medium">Invite Staff</p>
+                        <p className="text-white/50 text-sm">Share link to connect staff</p>
+                    </div>
+                </div>
+                <ChevronRight size={20} className="text-white/30" />
+            </Card>
+
+            {/* Invite Modal */}
+            {showInviteModal && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <Card className="w-full max-w-md p-6 relative">
+                        <button
+                            onClick={() => setShowInviteModal(false)}
+                            className="absolute top-4 right-4 text-white/50 hover:text-white"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <div className="text-center mb-6">
+                            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
+                                <Share2 size={32} className="text-white" />
+                            </div>
+                            <h2 className="text-xl font-bold text-white">Invite Staff</h2>
+                            <p className="text-white/50 text-sm mt-1">
+                                Share this link with your staff to connect them
+                            </p>
+                        </div>
+
+                        {/* Link Preview */}
+                        <div className="bg-black/30 rounded-lg p-3 mb-4 flex items-center gap-2">
+                            <Link size={16} className="text-white/50 flex-shrink-0" />
+                            <p className="text-white/70 text-sm truncate flex-1">
+                                {getInviteLink()}
+                            </p>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-3">
+                            <Button
+                                variant="secondary"
+                                className="flex-1 flex items-center justify-center gap-2"
+                                onClick={handleCopyLink}
+                            >
+                                {linkCopied ? (
+                                    <>
+                                        <CheckCircle size={18} className="text-emerald-400" />
+                                        <span className="text-emerald-400">Copied!</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Copy size={18} />
+                                        <span>Copy Link</span>
+                                    </>
+                                )}
+                            </Button>
+
+                            {navigator.share && (
+                                <Button
+                                    variant="primary"
+                                    className="flex-1 flex items-center justify-center gap-2"
+                                    onClick={handleNativeShare}
+                                >
+                                    <Share2 size={18} />
+                                    <span>Share</span>
+                                </Button>
+                            )}
+                        </div>
+
+                        {/* Instructions */}
+                        <div className="mt-4 pt-4 border-t border-white/10">
+                            <p className="text-white/40 text-xs text-center">
+                                Staff will use this link to set up the app on their device and connect to your shop.
+                            </p>
+                        </div>
+                    </Card>
+                </div>
+            )}
 
             {/* Tab Navigation */}
             <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar">
@@ -243,7 +375,6 @@ export default function AdminPage() {
                                 >
                                     <option value="staff">Staff (Billing Only)</option>
                                     <option value="manager">Manager (Full Access)</option>
-                                    <option value="viewer">Viewer (Read Only)</option>
                                 </select>
                             </div>
                             <div className={styles.formActions}>

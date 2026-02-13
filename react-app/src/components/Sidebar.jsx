@@ -2,23 +2,25 @@ import { Link, useLocation } from "react-router-dom";
 import { Home, Package, Tags, FileBarChart, User } from "lucide-react";
 import styles from "./Sidebar.module.css";
 import clsx from "clsx";
+import { useTranslation } from "../context/LanguageContext";
 
 export default function Sidebar() {
     const location = useLocation();
     const pathname = location.pathname;
+    const t = useTranslation();
 
     const navItems = [
-        { name: "Dashboard", href: "/home", icon: Home },
-        { name: "Inventory", href: "/inventory", icon: Package },
-        { name: "Sell / POS", href: "/sell", icon: Tags },
-        { name: "Reports", href: "/reports", icon: FileBarChart },
+        { key: "home", href: "/home", icon: Home },
+        { key: "inventory", href: "/inventory", icon: Package },
+        { key: "billing", href: "/sell", icon: Tags },
+        { key: "reports", href: "/reports", icon: FileBarChart },
     ];
 
     return (
         <aside className={styles.sidebar}>
             <div className={styles.logo}>
-                <div className={styles.logoIcon}>T</div>
-                TrackEezy
+                <div className={styles.logoIcon}>B</div>
+                BijNex
             </div>
 
             <nav className={styles.nav}>
@@ -26,12 +28,12 @@ export default function Sidebar() {
                     const isActive = pathname === item.href;
                     return (
                         <Link
-                            key={item.name}
-                            to={item.href} // 'to' instead of 'href' in react-router
+                            key={item.key}
+                            to={item.href}
                             className={clsx(styles.navItem, isActive && styles.active)}
                         >
                             <item.icon size={20} className={styles.icon} />
-                            {item.name}
+                            {t(`nav.${item.key}`)}
                         </Link>
                     );
                 })}
@@ -43,8 +45,8 @@ export default function Sidebar() {
                         <User size={20} />
                     </div>
                     <div className={styles.userInfo}>
-                        <span className={styles.userName}>My Shop</span>
-                        <span className={styles.userRole}>Store Owner</span>
+                        <span className={styles.userName}>{t("sidebar.myShop")}</span>
+                        <span className={styles.userRole}>{t("sidebar.storeOwner")}</span>
                     </div>
                 </Link>
             </div>

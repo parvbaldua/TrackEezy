@@ -9,11 +9,13 @@ import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthProvider";
 import { GoogleSheetsService } from "../services/sheets";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "../context/LanguageContext";
 
 export default function InventoryPage() {
     const { sheetUrl, inventory, fetchInventory, addInventoryItem, updateInventoryItem, removeInventoryItem, lastError, getSheetId } = useApp();
     const { accessToken } = useAuth();
     const [searchParams] = useSearchParams();
+    const t = useTranslation();
     const [searchTerm, setSearchTerm] = useState("");
     const [activeTab, setActiveTab] = useState("all"); // 'all', 'grocery', 'liquids', 'others', 'low'
     const [loading, setLoading] = useState(false);
@@ -78,7 +80,7 @@ export default function InventoryPage() {
 
     // Delete Item Handler
     const handleDeleteItem = async (item) => {
-        if (!confirm(`Are you sure you want to delete "${item.name}"?`)) return;
+        if (!confirm(`${t('common.confirm')}? "${item.name}"?`)) return;
 
         try {
             // Optimistic UI update - remove from local state
@@ -96,7 +98,7 @@ export default function InventoryPage() {
             setTimeout(() => fetchInventory(), 500);
         } catch (error) {
             console.error("Delete Error:", error);
-            alert("Error deleting item: " + error.message);
+            alert(t('common.error') + ": " + error.message);
             // Refetch to restore state
             fetchInventory();
         }
@@ -220,11 +222,11 @@ export default function InventoryPage() {
         <div className={styles.container}>
             <div className={styles.header}>
                 <div className="flex flex-col">
-                    <h1 className={styles.title}>Inventory</h1>
+                    <h1 className={styles.title}>{t('inventory.title')}</h1>
                 </div>
                 <div className={styles.headerActions}>
                     {sheetUrl && (
-                        <Button variant="ghost" onClick={() => window.open(sheetUrl, '_blank')} className="!p-2 text-white/50 hover:text-white" title="Open Google Sheet">
+                        <Button variant="ghost" onClick={() => window.open(sheetUrl, '_blank')} className="!p-2 text-white/50 hover:text-white" title={t('profile.sheetUrl')}>
                             <ExternalLink size={20} />
                         </Button>
                     )}
@@ -237,7 +239,7 @@ export default function InventoryPage() {
                         setIsAddOpen(true);
                     }}>
                         <Plus size={24} />
-                        <span className={styles.addBtnText}>Add New Item</span>
+                        <span className={styles.addBtnText}>{t('inventory.addProduct')}</span>
                     </Button>
                 </div>
             </div>
@@ -255,7 +257,7 @@ export default function InventoryPage() {
                     <div className="p-6 bg-white/5 rounded-full mb-6 border border-white/10 shadow-xl shadow-black/20">
                         <Package size={64} className="text-white/40" />
                     </div>
-                    <h3 className="text-2xl font-bold text-white mb-3">Your Inventory is Empty</h3>
+                    <h3 className="text-2xl font-bold text-white mb-3">{t('inventory.noProducts')}</h3>
                     <p className="text-white/60 mb-8 max-w-sm mx-auto leading-relaxed">
                         Add items to your inventory to start tracking stock and creating bills.
                     </p>
@@ -267,7 +269,7 @@ export default function InventoryPage() {
                             setIsAddOpen(true);
                         }}
                     >
-                        <Plus size={24} className="mr-2" /> Add First Item
+                        <Plus size={24} className="mr-2" /> {t('common.add')}
                     </Button>
                 </div>
             ) : (
@@ -277,10 +279,10 @@ export default function InventoryPage() {
                         {[
                             { id: 'all', label: 'All Items' },
                             { id: 'expiring', label: '⚠️ Expiring Soon' },
-                            { id: 'low', label: 'Low Stock' },
+                            { id: 'low', label: t('inventory.lowStockAlert') },
                             { id: 'grocery', label: 'Grocery' },
                             { id: 'liquids', label: 'Liquids' },
-                            { id: 'others', label: 'Packets/Count' }
+                            { id: 'others', label: 'Others' }
                         ].map(tab => (
                             <button
                                 key={tab.id}
@@ -302,7 +304,7 @@ export default function InventoryPage() {
                         <div className={styles.searchWrapper}>
                             <Search className={styles.searchIcon} size={18} />
                             <Input
-                                placeholder="Search item or SKU..."
+                                placeholder={t('inventory.searchProducts')}
                                 className={styles.searchInput}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -321,14 +323,14 @@ export default function InventoryPage() {
                                             <h3 className={styles.itemName}>{item.name}</h3>
                                             {item.low && <AlertCircle size={14} className={styles.lowStockIcon} />}
                                         </div>
-                                        <p className={styles.itemSku}>SKU: {item.sku}</p>
+                                        <p className={styles.itemSku}>{t('inventory.sku')}: {item.sku}</p>
                                     </div>
 
                                     <div className={styles.itemMeta}>
                                         <p className={styles.itemPrice}>₹{item.price}</p>
                                         <div className="flex flex-col items-end gap-1">
                                             <p className={clsx(styles.stockCount, item.low && styles.stockLow)}>
-                                                Stock: {parseFloat((item.qty / (item.conversionFactor || 1)).toFixed(2))} {item.displayUnit}
+                                                {t('home.lowStock')}: {parseFloat((item.qty / (item.conversionFactor || 1)).toFixed(2))} {item.displayUnit}
                                             </p>
                                             <Button variant="ghost" className="!p-1 h-auto text-white/50" onClick={() => handleEditItem(item)}>
                                                 <Edit2 size={14} />
@@ -339,7 +341,7 @@ export default function InventoryPage() {
                             ))
                         ) : (
                             <div className="text-center py-10 text-white/40">
-                                <p>No items found matching "{searchTerm}"</p>
+                                <p>{t('inventory.noProducts')}</p>
                             </div>
                         )}
                     </div>
@@ -347,10 +349,10 @@ export default function InventoryPage() {
                     {/* Desktop Table View */}
                     <div className={styles.tableContainer}>
                         <div className={styles.tableHeader}>
-                            <div>Product Name</div>
-                            <div>SKU</div>
-                            <div>Price</div>
-                            <div>Stock</div>
+                            <div>{t('inventory.productName')}</div>
+                            <div>{t('inventory.sku')}</div>
+                            <div>{t('inventory.price')}</div>
+                            <div>{t('home.totalItems')}</div>
                             <div className="text-right">Actions</div>
                         </div>
                         {filtered.map((item) => (
@@ -376,12 +378,12 @@ export default function InventoryPage() {
                 </>
             )}
 
-            <Modal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title={editMode ? "Edit Product" : "Add New Product"}>
+            <Modal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title={editMode ? t('common.edit') : t('inventory.addProduct')}>
                 <div className="space-y-4">
 
                     {/* 1. Product Name */}
                     <div>
-                        <label className={styles.modalLabel}>Product Name</label>
+                        <label className={styles.modalLabel}>{t('inventory.productName')}</label>
                         <Input
                             placeholder="e.g. Basmati Rice"
                             value={newItem.name}
@@ -392,7 +394,7 @@ export default function InventoryPage() {
 
                     {/* 2. Simple Unit Selection */}
                     <div>
-                        <label className={styles.modalLabel}>Unit</label>
+                        <label className={styles.modalLabel}>{t('inventory.unit')}</label>
                         <select
                             className={clsx(styles.modalInput, "w-full h-10 bg-[#27272A] border border-white/10 rounded-md px-3 text-white")}
                             value={
@@ -494,7 +496,7 @@ export default function InventoryPage() {
                         {/* 4. Price */}
                         <div>
                             <label className={styles.modalLabel}>
-                                {newItem.displayUnit === 'packet' ? "Price of 1 Packet (₹)" : `Price per ${newItem.displayUnit} (₹)`}
+                                {newItem.displayUnit === 'packet' ? "Price of 1 Packet (₹)" : `${t('inventory.price')} (₹)`}
                             </label>
                             <Input
                                 placeholder="0.00"
@@ -508,7 +510,7 @@ export default function InventoryPage() {
                         {/* 5. Quantity */}
                         <div>
                             <label className={styles.modalLabel}>
-                                Quantity <span className="text-white/40 font-normal">({newItem.displayUnit})</span>
+                                {t('inventory.quantity')} <span className="text-white/40 font-normal">({newItem.displayUnit})</span>
                             </label>
                             <Input
                                 placeholder="0"
@@ -524,7 +526,7 @@ export default function InventoryPage() {
                         <div>
                             <label className={styles.modalLabel}>One {newItem.displayUnit} = ? {newItem.baseUnit}</label>
                             <Input
-                                placeholder="Conversion Factor"
+                                placeholder={t('inventory.conversionFactor')}
                                 type="number"
                                 value={newItem.conversionFactor}
                                 className={styles.modalInput}
@@ -584,7 +586,7 @@ export default function InventoryPage() {
                         disabled={!newItem.name || !newItem.price || adding}
                         className="w-full mt-2 h-12 text-md font-medium bg-green-600 hover:bg-green-700 text-white"
                     >
-                        {adding ? "Saving..." : (editMode ? "Update Item" : "Add to Inventory")}
+                        {adding ? t('common.loading') : (editMode ? t('common.save') : t('common.add'))}
                     </Button>
                 </div>
             </Modal>

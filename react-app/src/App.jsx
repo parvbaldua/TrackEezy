@@ -17,6 +17,7 @@ import ProfilePage from './pages/ProfilePage'
 import InvoicePage from './pages/InvoicePage'
 import AdminPage from './pages/AdminPage'
 import KhataPage from './pages/KhataPage'
+import JoinPage from './pages/JoinPage'
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
             <AppProvider>
               <Routes>
                 <Route path="/" element={<LandingPage />} />
+                <Route path="/join" element={<JoinPage />} />
                 <Route path="/invoice" element={<InvoicePage />} />
 
                 <Route element={<DashboardLayout />}>
