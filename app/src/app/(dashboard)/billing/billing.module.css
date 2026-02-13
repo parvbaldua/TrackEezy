@@ -416,121 +416,123 @@
 
 /* Print Styles (Thermal Printer / DMart Style) */
 @media print {
+    :global {
 
-    /* Hide everything on screen */
-    body * {
-        visibility: hidden;
-    }
+        /* Hide everything on screen */
+        body * {
+            visibility: hidden;
+        }
 
-    /* Target the Receipt only */
-    .receipt,
-    .receipt * {
-        visibility: visible;
-        display: block !important;
-    }
+        /* Target the Receipt only */
+        .receipt,
+        .receipt * {
+            visibility: visible;
+            display: block !important;
+        }
 
-    .receipt {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        /* Or 80mm for thermal */
-        margin: 0;
-        padding: 0;
-        font-family: 'Courier New', Courier, monospace;
-        /* Monospace is key */
-        font-size: 12px;
-        color: black;
-        line-height: 1.2;
-    }
+        .receipt {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            /* Or 80mm for thermal */
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+            /* Monospace is key */
+            font-size: 12px;
+            color: black;
+            line-height: 1.2;
+        }
 
-    /* Utilities for the receipt layout */
-    .receiptHeader {
-        text-align: center;
-        margin-bottom: 10px;
-    }
+        /* Utilities for the receipt layout */
+        .receiptHeader {
+            text-align: center;
+            margin-bottom: 10px;
+        }
 
-    .receiptTitle {
-        font-size: 16px;
-        font-weight: bold;
-        text-transform: uppercase;
-        margin-bottom: 2px;
-    }
+        .receiptTitle {
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
 
-    .receiptAddress {
-        font-size: 12px;
-        margin-bottom: 2px;
-    }
+        .receiptAddress {
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
 
-    .receiptSubText {
-        font-size: 10px;
-        font-style: italic;
-        margin-bottom: 5px;
-    }
+        .receiptSubText {
+            font-size: 10px;
+            font-style: italic;
+            margin-bottom: 5px;
+        }
 
-    .divider {
-        border-top: 1px dashed black;
-        margin: 5px 0;
-    }
+        .divider {
+            border-top: 1px dashed black;
+            margin: 5px 0;
+        }
 
-    .doubleDivider {
-        border-top: 1px double black;
-        /* Or 2px solid */
-        border-bottom: 1px double black;
-        margin: 5px 0;
-        height: 3px;
-    }
+        .doubleDivider {
+            border-top: 1px double black;
+            /* Or 2px solid */
+            border-bottom: 1px double black;
+            margin: 5px 0;
+            height: 3px;
+        }
 
-    .receiptRow {
-        display: flex;
-        justify-content: space-between;
-    }
+        .receiptRow {
+            display: flex;
+            justify-content: space-between;
+        }
 
-    .infoRow {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 2px;
-    }
+        .infoRow {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
+        }
 
-    /* Table-like structure for items */
-    .itemTable {
-        width: 100%;
-        text-align: left;
-        border-collapse: collapse;
-    }
+        /* Table-like structure for items */
+        .itemTable {
+            width: 100%;
+            text-align: left;
+            border-collapse: collapse;
+        }
 
-    .itemTable th {
-        border-bottom: 1px dashed black;
-        padding-bottom: 5px;
-        font-weight: normal;
-    }
+        .itemTable th {
+            border-bottom: 1px dashed black;
+            padding-bottom: 5px;
+            font-weight: normal;
+        }
 
-    .itemTable td {
-        padding: 4px 0;
-    }
+        .itemTable td {
+            padding: 4px 0;
+        }
 
-    .alignRight {
-        text-align: right;
-    }
+        .alignRight {
+            text-align: right;
+        }
 
-    .totalSection {
-        margin-top: 10px;
-        border-top: 1px dashed black;
-        padding-top: 5px;
-    }
+        .totalSection {
+            margin-top: 10px;
+            border-top: 1px dashed black;
+            padding-top: 5px;
+        }
 
-    .netPayable {
-        border-top: 1px dashed black;
-        border-bottom: 1px dashed black;
-        padding: 5px 0;
-        margin: 5px 0;
-        font-size: 14px;
-        font-weight: bold;
-    }
+        .netPayable {
+            border-top: 1px dashed black;
+            border-bottom: 1px dashed black;
+            padding: 5px 0;
+            margin: 5px 0;
+            font-size: 14px;
+            font-weight: bold;
+        }
 
-    .footer {
-        text-align: center;
-        margin-top: 10px;
-        font-size: 10px;
+        .footer {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 10px;
+        }
     }
 }
