@@ -33,15 +33,17 @@
 }
 
 .logoIcon {
-    width: 32px;
-    height: 32px;
+    width: 48px;
+    height: 48px;
     background-color: hsl(var(--primary));
-    border-radius: 8px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: black;
-    font-weight: 700;
+    font-weight: 800;
+    font-size: 1.25rem;
+    flex-shrink: 0;
 }
 
 .nav {

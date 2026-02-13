@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
 import { isAdminEmail } from '../config/AdminConfig';
 
+import { API_BASE_URL } from '../config/api';
+
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
@@ -12,7 +14,7 @@ export function AuthProvider({ children }) {
 
     const refreshAccessToken = async () => {
         try {
-            const res = await fetch('http://localhost:4000/api/auth/google/refresh', {
+            const res = await fetch(`${API_BASE_URL}/api/auth/google/refresh`, {
                 method: 'POST',
                 credentials: 'include', // Send cookies
             });
@@ -99,7 +101,7 @@ export function AuthProvider({ children }) {
         access_type: 'offline', // access_type: 'offline' is implied by flow='auth-code' usually, but good to be specific if supported
         onSuccess: async (codeResponse) => {
             try {
-                const res = await fetch('http://localhost:4000/api/auth/google/login', {
+                const res = await fetch(`${API_BASE_URL}/api/auth/google/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ code: codeResponse.code }),
@@ -137,7 +139,7 @@ export function AuthProvider({ children }) {
 
     const logout = async () => {
         try {
-            await fetch('http://localhost:4000/api/auth/google/logout', {
+            await fetch(`${API_BASE_URL}/api/auth/google/logout`, {
                 method: 'POST',
                 credentials: 'include'
             });

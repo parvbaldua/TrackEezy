@@ -128,7 +128,7 @@ export default function LandingPage() {
                         <div className={styles.logoWrapper}>
                             <span className={styles.logoText}>B</span>
                         </div>
-                        <h1 className={styles.title}>BijNex</h1>
+                        <h1 className={styles.title}>AapKaBakaya</h1>
                         <p className={styles.subtitle}>Inventory • Billing • Reports</p>
                     </div>
                 ) : (

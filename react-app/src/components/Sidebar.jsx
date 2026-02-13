@@ -19,8 +19,8 @@ export default function Sidebar() {
     return (
         <aside className={styles.sidebar}>
             <div className={styles.logo}>
-                <div className={styles.logoIcon}>B</div>
-                BijNex
+                <div className={styles.logoIcon}>AKB</div>
+                AapKaBakaya
             </div>
 
             <nav className={styles.nav}>

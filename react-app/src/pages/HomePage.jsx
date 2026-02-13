@@ -52,7 +52,7 @@ export default function HomePage() {
             <div className={styles.header}>
                 <div>
                     <h2 className={styles.greeting}>{t('home.greeting')}, {greetingName} 👋</h2>
-                    <h1 className={styles.title}>BijNex</h1>
+                    <h1 className={styles.title}>AapKaBakaya</h1>
                 </div>
                 {/* Refresh for Home too */}
                 <Button variant="ghost" onClick={fetchInventory} className="!p-2 text-white/50 hover:text-white">
