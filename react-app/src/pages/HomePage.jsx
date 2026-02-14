@@ -21,7 +21,17 @@ export default function HomePage() {
     });
 
     useEffect(() => {
-        if (shopName) setGreetingName(shopName);
+        if (shopName) {
+            // Strip inventory suffixes from sheet name for clean display
+            const cleanName = shopName
+                .replace(/ - Inventory\s*\(AapKaBakaya\)/gi, "")
+                .replace(/ - Inventory\s*\(BijNex\)/gi, "")
+                .replace(/ - Inventory\s*\(Biznex\)/gi, "")
+                .replace(/ - Inventory\s*\(TrackEezy\)/gi, "")
+                .replace(/ - Inventory$/gi, "")
+                .trim();
+            setGreetingName(cleanName || shopName);
+        }
     }, [shopName]);
 
     useEffect(() => {
