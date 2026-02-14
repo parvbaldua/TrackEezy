@@ -132,7 +132,7 @@ export default function InventoryPage() {
             expiryDate: newItem.expiryDate,
             batchNo: newItem.batchNo,
             hsnCode: newItem.hsnCode,
-            gstPercent: parseFloat(newItem.gstPercent) || 18
+            gstPercent: newItem.gstPercent === "" ? 18 : parseFloat(newItem.gstPercent)
         };
 
         setIsAddOpen(false);
@@ -159,7 +159,7 @@ export default function InventoryPage() {
                         newItem.expiryDate || '',
                         newItem.batchNo || '',
                         newItem.hsnCode || '',
-                        parseFloat(newItem.gstPercent) || 18
+                        newItem.gstPercent === "" ? 18 : parseFloat(newItem.gstPercent)
                     ]);
                 }
             } else {
@@ -179,7 +179,7 @@ export default function InventoryPage() {
                         expiryDate: newItem.expiryDate,
                         batchNo: newItem.batchNo,
                         hsnCode: newItem.hsnCode,
-                        gstPercent: parseFloat(newItem.gstPercent) || 18
+                        gstPercent: newItem.gstPercent === "" ? 18 : parseFloat(newItem.gstPercent)
                     });
                 }
             }

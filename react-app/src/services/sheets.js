@@ -248,7 +248,7 @@ export const GoogleSheetsService = {
                     expiryDate: row[7] || "",
                     batchNo: row[8] || "",
                     hsnCode: row[9] || "",
-                    gstPercent: parseFloat(row[10]) || 18
+                    gstPercent: (!isNaN(parseFloat(row[10]))) ? parseFloat(row[10]) : 18
                 };
             }).filter(item => item !== null); // Remove nulls
 
