@@ -257,6 +257,9 @@ export default function LandingPage() {
                 <p className={styles.footer}>
                     Simple • Secure • Fast
                 </p>
+                <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginTop: '8px', letterSpacing: '0.5px' }}>
+                    Created with ❤️ by Parv Baldua
+                </p>
             </div>
         </div>
     );

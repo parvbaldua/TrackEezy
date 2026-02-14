@@ -181,6 +181,11 @@ export default function HomePage() {
                     )}
                 </div>
             </div>
+
+            {/* Developer Branding */}
+            <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.25)', textAlign: 'center', padding: '24px 0 80px', letterSpacing: '0.5px' }}>
+                Created with ❤️ by Parv Baldua
+            </p>
         </div>
     );
 }
