@@ -1,4 +1,3 @@
-```typescript
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleAuth } from "@/lib/google-auth";
 import { cookies } from "next/headers";
@@ -21,7 +20,7 @@ export async function POST(req: NextRequest) {
 
         // Update Refresh Token if a new one was returned
         if (tokens.refresh_token) {
-            response.cookies.set("bijnex_refresh_token", tokens.refresh_token, {
+            response.cookies.set("akb_refresh_token", tokens.refresh_token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "lax",
