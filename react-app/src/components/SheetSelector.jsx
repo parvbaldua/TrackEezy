@@ -17,7 +17,7 @@ export default function SheetSelector({ sheets, onSelect, onCreateNew }) {
             <div className="w-full space-y-3 mb-6 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                 {sheets.length === 0 ? (
                     <div className="text-center py-6 px-4 bg-white/5 rounded-xl border border-white/10 border-dashed">
-                        <p className="text-white/60 text-sm mb-1">No existing BijNex shops found.</p>
+                        <p className="text-white/60 text-sm mb-1">No existing AapKaBakaya shops found.</p>
                         <p className="text-white/40 text-xs">Check your Google Drive or create a new one.</p>
                     </div>
                 ) : (
@@ -33,7 +33,7 @@ export default function SheetSelector({ sheets, onSelect, onCreateNew }) {
                                 </div>
                                 <div>
                                     <h3 className="text-white font-medium group-hover:text-emerald-400 transition-colors">
-                                        {sheet.name.replace(" - Inventory (BijNex)", "").replace(" - Inventory (BijNex)", "").replace(" - Inventory (TrackEezy)", "")}
+                                        {sheet.name.replace(" - Inventory (AapKaBakaya)", "").replace(" - Inventory (BijNex)", "").replace(" - Inventory (TrackEezy)", "")}
                                     </h3>
                                     <p className="text-xs text-white/40">Last modified recently</p>
                                 </div>

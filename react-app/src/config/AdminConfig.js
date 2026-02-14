@@ -8,7 +8,7 @@ export const ADMIN_CONFIG = {
     ],
 
     // App Name
-    appName: 'BijNex',
+    appName: 'AapKaBakaya',
 
     // Version
     version: '2.0.0'

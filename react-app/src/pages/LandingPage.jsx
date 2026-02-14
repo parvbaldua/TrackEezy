@@ -58,7 +58,7 @@ export default function LandingPage() {
             console.log("Searching for existing shops...");
             // 1. Specific Search
             let sheets = await GoogleSheetsService.searchExistingSheets(accessToken);
-            console.log("BijNex sheets:", sheets);
+            console.log("AapKaBakaya sheets:", sheets);
 
             // 2. Broad Search
             if (!sheets || sheets.length === 0) {
@@ -102,7 +102,7 @@ export default function LandingPage() {
     // --- Handlers ---
 
     const handleSheetSelect = (sheet) => {
-        let name = sheet.name.replace(" - Inventory (BijNex)", "").trim();
+        let name = sheet.name.replace(" - Inventory (AapKaBakaya)", "").trim();
         name = name.replace(" - Inventory (TrackEezy)", "").trim();
         saveConfig(name || "My Shop", sheet.url);
         navigate("/home", { replace: true });
@@ -132,7 +132,7 @@ export default function LandingPage() {
                         <p className={styles.subtitle}>Inventory • Billing • Reports</p>
                     </div>
                 ) : (
-                    <p className="text-sm text-white/40 font-medium tracking-widest mb-6">BijNex</p>
+                    <p className="text-sm text-white/40 font-medium tracking-widest mb-6">AapKaBakaya</p>
                 )}
 
                 {/* --- INITIAL CHOICE --- */}

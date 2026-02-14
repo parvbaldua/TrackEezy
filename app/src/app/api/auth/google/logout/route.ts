@@ -5,10 +5,7 @@ export async function POST(req: NextRequest) {
 
     // Clear Cookie
     // Clear Cookie
-    response.cookies.delete({
-        name: "bijnex_refresh_token",
-        path: "/",
-    });
+    response.cookies.delete("akb_refresh_token");
 
     return response;
 }

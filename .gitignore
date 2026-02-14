@@ -31,3 +31,9 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
+
+# Android Manual Tools (Do not commit)
+android-sdk/
+jdk-17/
+AKB-android/.bubblewrap/
+

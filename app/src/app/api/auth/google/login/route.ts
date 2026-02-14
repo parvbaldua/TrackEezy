@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 
         // Set Refresh Token Cookie (HttpOnly)
         if (tokens.refresh_token) {
-            response.cookies.set("bijnex_refresh_token", tokens.refresh_token, {
+            response.cookies.set("akb_refresh_token", tokens.refresh_token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "lax", // Must be lax to wait for cross-site redirects or calls

@@ -9,12 +9,12 @@ export const GoogleSheetsService = {
      */
     async searchExistingSheets(token, customQuery = null) {
         try {
-            // Default: Search for "BijNex"
+            // Default: Search for "AapKaBakaya"
             // If customQuery is provided (e.g. empty string for all), use that.
             let query = customQuery;
             if (!query) {
                 // Search for ANY valid inventory sheet variants
-                query = "(name contains 'BijNex' or name contains 'Biznex') and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false";
+                query = "(name contains 'AapKaBakaya' or name contains 'BijNex' or name contains 'Biznex') and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false";
             }
 
             const encodedQuery = encodeURIComponent(query);
@@ -270,7 +270,7 @@ export const GoogleSheetsService = {
                 },
                 body: JSON.stringify({
                     properties: {
-                        title: `${shopName || "My Shop"} - Inventory (BijNex)`
+                        title: `${shopName || "My Shop"} - Inventory (AapKaBakaya)`
                     },
                     sheets: [
                         {

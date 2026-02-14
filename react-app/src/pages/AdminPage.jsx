@@ -144,8 +144,8 @@ export default function AdminPage() {
         if (navigator.share) {
             try {
                 await navigator.share({
-                    title: `Join ${shopName} on BijNex`,
-                    text: `Join our shop's inventory on BijNex! Click to connect automatically:`,
+                    title: `Join ${shopName} on AapKaBakaya`,
+                    text: `Join our shop's inventory on AapKaBakaya! Click to connect automatically:`,
                     url: inviteLink
                 });
             } catch (err) {

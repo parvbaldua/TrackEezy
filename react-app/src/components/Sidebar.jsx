@@ -49,6 +49,9 @@ export default function Sidebar() {
                         <span className={styles.userRole}>{t("sidebar.storeOwner")}</span>
                     </div>
                 </Link>
+                <div className={styles.branding}>
+                    Created by Parv Baldua
+                </div>
             </div>
         </aside>
     );

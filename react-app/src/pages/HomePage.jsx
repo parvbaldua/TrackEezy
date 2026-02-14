@@ -72,7 +72,7 @@ export default function HomePage() {
                         </div>
                         <div>
                             <h3 className="text-white font-semibold text-base">
-                                {user ? "Start Your Inventory" : "Welcome to BijNex"}
+                                {user ? "Start Your Inventory" : "Welcome to AapKaBakaya"}
                             </h3>
                             <p className="text-white/60 text-sm">
                                 {user ? t('home.connectSheet') : "Connect Google Account & Sheet to start."}

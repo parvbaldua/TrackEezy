@@ -1,9 +1,12 @@
+```typescript
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleAuth } from "@/lib/google-auth";
+import { cookies } from "next/headers";
 
 export async function POST(req: NextRequest) {
     try {
-        const refreshToken = req.cookies.get("bijnex_refresh_token")?.value;
+        const cookieStore = cookies();
+        const refreshToken = cookieStore.get("akb_refresh_token")?.value;
 
         if (!refreshToken) {
             return NextResponse.json({ error: "No refresh token found" }, { status: 401 });

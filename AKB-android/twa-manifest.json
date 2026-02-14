@@ -1,0 +1,55 @@
+{
+  "packageId": "com.aapkabakaya.app",
+  "host": "aapkabakaya.vercel.app",
+  "name": "AKB - AapKaBakaya",
+  "launcherName": "AKB",
+  "display": "standalone",
+  "themeColor": "#10B981",
+  "themeColorDark": "#000000",
+  "navigationColor": "#10B981",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#FFFFFF",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://aapkabakaya.vercel.app/pwa-512x512.png",
+  "maskableIconUrl": "https://aapkabakaya.vercel.app/pwa-512x512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./akb-keystore.jks",
+    "alias": "akb-key",
+    "storePassword": "password123",
+    "keyPassword": "password123"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://aapkabakaya.vercel.app/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {
+    "playBilling": {
+      "enabled": false
+    },
+    "locationDelegation": {
+      "enabled": false
+    },
+    "crosKeys": {
+      "enabled": false
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "minSdkVersion": 21,
+  "orientation": "default",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "displayOverride": [],
+  "appVersion": "1.0.0"
+}

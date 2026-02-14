@@ -1,0 +1,15 @@
+[
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.aapkabakaya.app",
+            "sha256_cert_fingerprints": [
+                "6A:B2:90:F6:85:87:4E:94:62:60:45:1F:C1:7A:D1:43:09:EF:E3:0A:50:46:E7:99:B2:3F:7A:B9:81:5F:32:D3",
+                "B5:5E:84:21:F7:E6:97:3F:C6:FF:17:02:3D:ED:07:BD:10:66:C3:95:D0:E9:66:54:0B:54:E3:11:50:39:E9:AF"
+            ]
+        }
+    }
+]

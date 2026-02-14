@@ -20,29 +20,29 @@ export function AppProvider({ children }) {
 
     // Function to read config from storage
     const readConfigFromStorage = useCallback(() => {
-        let savedName = localStorage.getItem("bijnex_shop_name");
-        let savedAddress = localStorage.getItem("bijnex_shop_address");
-        let savedPhone = localStorage.getItem("bijnex_shop_phone");
-        let savedGstin = localStorage.getItem("bijnex_shop_gstin");
-        let savedUrl = localStorage.getItem("bijnex_sheet_url");
+        let savedName = localStorage.getItem("akb_shop_name");
+        let savedAddress = localStorage.getItem("akb_shop_address");
+        let savedPhone = localStorage.getItem("akb_shop_phone");
+        let savedGstin = localStorage.getItem("akb_shop_gstin");
+        let savedUrl = localStorage.getItem("akb_sheet_url");
 
-        // AUTO-MIGRATE: If bijnex keys are missing, check biznex keys (from the revert)
+        // AUTO-MIGRATE: If akb keys are missing, check bijnex keys
         if (!savedUrl) {
-            const legacyUrl = localStorage.getItem("biznex_sheet_url");
+            const legacyUrl = localStorage.getItem("bijnex_sheet_url");
             if (legacyUrl) {
-                console.log("Migrating legacy Biznex keys to BijNex...");
-                savedName = localStorage.getItem("biznex_shop_name");
-                savedAddress = localStorage.getItem("biznex_shop_address");
-                savedPhone = localStorage.getItem("biznex_shop_phone");
-                savedGstin = localStorage.getItem("biznex_shop_gstin");
+                console.log("Migrating legacy BijNex keys to AapKaBakaya...");
+                savedName = localStorage.getItem("bijnex_shop_name");
+                savedAddress = localStorage.getItem("bijnex_shop_address");
+                savedPhone = localStorage.getItem("bijnex_shop_phone");
+                savedGstin = localStorage.getItem("bijnex_shop_gstin");
                 savedUrl = legacyUrl;
 
                 // Save to new keys
-                localStorage.setItem("bijnex_shop_name", savedName || "");
-                localStorage.setItem("bijnex_sheet_url", savedUrl);
-                if (savedAddress) localStorage.setItem("bijnex_shop_address", savedAddress);
-                if (savedPhone) localStorage.setItem("bijnex_shop_phone", savedPhone);
-                if (savedGstin) localStorage.setItem("bijnex_shop_gstin", savedGstin);
+                localStorage.setItem("akb_shop_name", savedName || "");
+                localStorage.setItem("akb_sheet_url", savedUrl);
+                if (savedAddress) localStorage.setItem("akb_shop_address", savedAddress);
+                if (savedPhone) localStorage.setItem("akb_shop_phone", savedPhone);
+                if (savedGstin) localStorage.setItem("akb_shop_gstin", savedGstin);
             }
         }
 
@@ -140,11 +140,11 @@ export function AppProvider({ children }) {
     }, [isConfigured, accessToken, fetchInventory]);
 
     const saveConfig = (name, url, address, phone, gstin) => {
-        localStorage.setItem("bijnex_shop_name", name);
-        localStorage.setItem("bijnex_sheet_url", url);
-        if (address) localStorage.setItem("bijnex_shop_address", address);
-        if (phone) localStorage.setItem("bijnex_shop_phone", phone);
-        if (gstin) localStorage.setItem("bijnex_shop_gstin", gstin);
+        localStorage.setItem("akb_shop_name", name);
+        localStorage.setItem("akb_sheet_url", url);
+        if (address) localStorage.setItem("akb_shop_address", address);
+        if (phone) localStorage.setItem("akb_shop_phone", phone);
+        if (gstin) localStorage.setItem("akb_shop_gstin", gstin);
 
         setShopName(name);
         setSheetUrl(url);

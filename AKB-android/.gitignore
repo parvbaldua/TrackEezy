@@ -1,0 +1,27 @@
+# Gradle files
+.gradle/
+build/
+app/build/
+
+# Local configuration file (contains SDK path)
+local.properties
+
+# IDE files
+.idea/
+*.iml
+.DS_Store
+
+# Bubblewrap artifacts
+.bubblewrap/
+key.store
+setup-jdk17.ps1
+setup-sdk.ps1
+clean-and-build.ps1
+doctor_output.txt
+
+# Keep the keystore? Yes, but ignore it if you want secrecy. 
+# Usually keystores should NOT be committed if public repo.
+# If private repo, it's okay but risky.
+# Defaulting to ignore keystore to be safe.
+*.jks
+win-install-tools.bat

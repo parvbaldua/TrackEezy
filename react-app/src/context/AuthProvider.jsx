@@ -83,7 +83,7 @@ export function AuthProvider({ children }) {
     };
 
     const logUserLogin = (token, userInfo) => {
-        const savedUrl = localStorage.getItem("bijnex_sheet_url");
+        const savedUrl = localStorage.getItem("akb_sheet_url");
         if (savedUrl) {
             const sheetId = savedUrl.split("/d/")[1]?.split('/')[0];
             if (sheetId) {
@@ -151,18 +151,18 @@ export function AuthProvider({ children }) {
         setIsAdmin(false);
 
         // Clear Local Auth
-        localStorage.removeItem('bijnex_access_token');
-        localStorage.removeItem('bijnex_user');
+        localStorage.removeItem('akb_access_token');
+        localStorage.removeItem('akb_user');
 
         // Clear App Config (Shop Name, Sheet URL, etc) so Landing Page shows setup
-        localStorage.removeItem('bijnex_shop_name');
-        localStorage.removeItem('bijnex_shop_address');
-        localStorage.removeItem('bijnex_shop_phone');
-        localStorage.removeItem('bijnex_shop_gstin');
-        localStorage.removeItem('bijnex_sheet_url');
+        localStorage.removeItem('akb_shop_name');
+        localStorage.removeItem('akb_shop_address');
+        localStorage.removeItem('akb_shop_phone');
+        localStorage.removeItem('akb_shop_gstin');
+        localStorage.removeItem('akb_sheet_url');
 
         // Clear Legacy Keys (to prevent auto-migration loop)
-        const legacyPrefixes = ['biznex_', 'TrackEezy'];
+        const legacyPrefixes = ['biznex_', 'TrackEezy', 'bijnex_'];
         Object.keys(localStorage).forEach(key => {
             if (legacyPrefixes.some(prefix => key.startsWith(prefix))) {
                 localStorage.removeItem(key);
