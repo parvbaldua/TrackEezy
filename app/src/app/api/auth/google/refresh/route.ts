@@ -4,9 +4,11 @@ import { cookies } from "next/headers";
 
 export async function POST(req: NextRequest) {
     try {
+        // Accept refresh token from request body (primary) or cookie (fallback)
+        const body = await req.json().catch(() => ({}));
         const cookieStore = await cookies();
-        // Check new cookie name first, fallback to legacy name
-        const refreshToken = cookieStore.get("akb_refresh_token")?.value
+        const refreshToken = body.refresh_token
+            || cookieStore.get("akb_refresh_token")?.value
             || cookieStore.get("bijnex_refresh_token")?.value;
 
         if (!refreshToken) {
@@ -17,7 +19,8 @@ export async function POST(req: NextRequest) {
 
         const response = NextResponse.json({
             access_token: tokens.access_token,
-            expiry_date: tokens.expiry_date
+            expiry_date: tokens.expiry_date,
+            refresh_token: tokens.refresh_token || undefined
         });
 
         // Update Refresh Token if a new one was returned

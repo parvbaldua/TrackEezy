@@ -14,37 +14,49 @@ export function AuthProvider({ children }) {
 
     const refreshAccessToken = async () => {
         try {
+            // Read refresh token from localStorage (not cookies)
+            const storedRefreshToken = localStorage.getItem('akb_refresh_token');
+            if (!storedRefreshToken) {
+                // No refresh token = not logged in, skip silently
+                setLoading(false);
+                return;
+            }
+
             const res = await fetch(`${API_BASE_URL}/api/auth/google/refresh`, {
                 method: 'POST',
-                credentials: 'include', // Send cookies
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // Still send cookies as fallback
+                body: JSON.stringify({ refresh_token: storedRefreshToken }),
             });
 
             if (res.ok) {
                 const data = await res.json();
                 setAccessToken(data.access_token);
 
+                // Update refresh token in localStorage if rotated
+                if (data.refresh_token) {
+                    localStorage.setItem('akb_refresh_token', data.refresh_token);
+                }
+
                 // If we don't have user info (e.g. reload), fetch it
                 if (!user) {
                     await fetchUserInfo(data.access_token);
                 }
 
-                // Schedule next refresh slightly before expiry (e.g. 5 mins before)
-                // Expiry is usually 1 hour (3600*1000 ms)
-                // We'll trust the expiry_date if provided, else default to 50 mins
+                // Schedule next refresh slightly before expiry
                 const expiresInMs = data.expiry_date ? (data.expiry_date - Date.now()) : 50 * 60 * 1000;
-                const refreshTime = Math.max(expiresInMs - 5 * 60 * 1000, 60 * 1000); // 5 mins buffer, min 1 min
+                const refreshTime = Math.max(expiresInMs - 5 * 60 * 1000, 60 * 1000);
 
                 setTimeout(refreshAccessToken, refreshTime);
             } else {
-                // Don't call logout() here — it clears all localStorage (shop config, sheet URL, etc.)
-                // Just silently reset auth state
+                // Refresh failed — token is invalid/expired, clear it
+                localStorage.removeItem('akb_refresh_token');
                 setUser(null);
                 setAccessToken(null);
                 setIsAdmin(false);
             }
         } catch (error) {
             console.error("Session refresh failed", error);
-            // Don't call logout() — just reset auth state, preserve app config
             setUser(null);
             setAccessToken(null);
             setIsAdmin(false);
@@ -120,6 +132,11 @@ export function AuthProvider({ children }) {
                     setUser(data.user);
                     setIsAdmin(isAdminEmail(data.user.email));
 
+                    // Store refresh token in localStorage for persistence across refreshes
+                    if (data.refresh_token) {
+                        localStorage.setItem('akb_refresh_token', data.refresh_token);
+                    }
+
                     // Schedule Refresh
                     const expiresInMs = data.expiry_date ? (data.expiry_date - Date.now()) : 50 * 60 * 1000;
                     const refreshTime = Math.max(expiresInMs - 5 * 60 * 1000, 60 * 1000);
@@ -159,6 +176,7 @@ export function AuthProvider({ children }) {
         // Clear Local Auth
         localStorage.removeItem('akb_access_token');
         localStorage.removeItem('akb_user');
+        localStorage.removeItem('akb_refresh_token');
 
         // Clear App Config (Shop Name, Sheet URL, etc) so Landing Page shows setup
         localStorage.removeItem('akb_shop_name');

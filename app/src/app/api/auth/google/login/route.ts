@@ -24,7 +24,8 @@ export async function POST(req: NextRequest) {
         const response = NextResponse.json({
             user: userInfo,
             access_token: tokens.access_token,
-            expiry_date: tokens.expiry_date
+            expiry_date: tokens.expiry_date,
+            refresh_token: tokens.refresh_token
         });
 
         // Set Refresh Token Cookie (HttpOnly)

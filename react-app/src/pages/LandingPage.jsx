@@ -37,19 +37,21 @@ export default function LandingPage() {
     useEffect(() => {
         const handleAuthSuccess = async () => {
             if (user && accessToken) {
+                // If already configured, don't re-search — let the redirect to /home handle it
+                if (isConfigured) return;
+
                 if (mode === 'create_auth') {
                     // CREATE FLOW: User is logged in, now create the sheet
                     await createShopAfterLogin();
                 } else if (mode === 'login_auth' || mode === 'initial') {
                     // LOGIN FLOW: User is logged in, search for sheets
-                    // Note: 'initial' check handles case if user was ALREADY logged in when page loaded
                     await searchForShops();
                 }
             }
         };
 
         handleAuthSuccess();
-    }, [user, accessToken, mode]);
+    }, [user, accessToken, mode, isConfigured]);
 
     const searchForShops = async () => {
         setFindingSheets(true);
