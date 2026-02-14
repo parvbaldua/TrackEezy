@@ -37,3 +37,12 @@ android-sdk/
 jdk-17/
 AKB-android/.bubblewrap/
 
+# Temporary/Debug files
+*.sha256.txt
+debug_sha256.txt
+release_sha256.txt
+cleanup_output.txt
+git_status.txt
+status_check.txt
+duplicate_project.ps1
+how --stat
