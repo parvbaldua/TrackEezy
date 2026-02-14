@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Headers handled by middleware.ts for dynamic CORS
+  /*
   async headers() {
     return [
       {
@@ -14,6 +16,7 @@ const nextConfig: NextConfig = {
       }
     ]
   }
+  */
 };
 
 export default nextConfig;

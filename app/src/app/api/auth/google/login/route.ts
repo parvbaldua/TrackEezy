@@ -31,8 +31,8 @@ export async function POST(req: NextRequest) {
         if (tokens.refresh_token) {
             response.cookies.set("akb_refresh_token", tokens.refresh_token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "lax", // Must be lax to wait for cross-site redirects or calls
+                secure: true, // Always secure for SameSite=None
+                sameSite: "none", // Allow cross-site usage
                 path: "/",
                 maxAge: 60 * 60 * 24 * 30 // 30 Days
             });
