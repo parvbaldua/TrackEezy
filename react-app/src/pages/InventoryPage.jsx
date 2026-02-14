@@ -35,7 +35,8 @@ export default function InventoryPage() {
         _customUnit: "",
         expiryDate: "",
         batchNo: "",
-        hsnCode: ""
+        hsnCode: "",
+        gstPercent: "18"
     });
     const [adding, setAdding] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -47,7 +48,7 @@ export default function InventoryPage() {
     useEffect(() => {
         if (searchParams.get("add") === "true") {
             setEditMode(false);
-            setNewItem({ name: "", sku: "", qty: "", price: "", baseUnit: "gram", displayUnit: "kilogram", conversionFactor: "1000", _customUnit: "" });
+            setNewItem({ name: "", sku: "", qty: "", price: "", baseUnit: "gram", displayUnit: "kilogram", conversionFactor: "1000", _customUnit: "", gstPercent: "18" });
             setIsAddOpen(true);
         }
     }, [searchParams]);
@@ -73,7 +74,8 @@ export default function InventoryPage() {
             _customUnit: item.displayUnit && !['kilogram', 'gram', 'litre', 'millilitre', 'piece', 'packet', 'box'].includes(item.displayUnit) ? item.displayUnit : "",
             expiryDate: item.expiryDate || "",
             batchNo: item.batchNo || "",
-            hsnCode: item.hsnCode || ""
+            hsnCode: item.hsnCode || "",
+            gstPercent: (item.gstPercent != null ? item.gstPercent : 18).toString()
         });
         setIsAddOpen(true);
     };
@@ -129,11 +131,12 @@ export default function InventoryPage() {
             conversionFactor: factor,
             expiryDate: newItem.expiryDate,
             batchNo: newItem.batchNo,
-            hsnCode: newItem.hsnCode
+            hsnCode: newItem.hsnCode,
+            gstPercent: parseFloat(newItem.gstPercent) || 18
         };
 
         setIsAddOpen(false);
-        setNewItem({ name: "", sku: "", qty: "", price: "", baseUnit: "gram", displayUnit: "kilogram", conversionFactor: "1000", _customUnit: "", expiryDate: "", batchNo: "", hsnCode: "" });
+        setNewItem({ name: "", sku: "", qty: "", price: "", baseUnit: "gram", displayUnit: "kilogram", conversionFactor: "1000", _customUnit: "", expiryDate: "", batchNo: "", hsnCode: "", gstPercent: "18" });
 
         // Trigger Success Popup
         setShowSuccess(true);
@@ -155,7 +158,8 @@ export default function InventoryPage() {
                         factor,
                         newItem.expiryDate || '',
                         newItem.batchNo || '',
-                        newItem.hsnCode || ''
+                        newItem.hsnCode || '',
+                        parseFloat(newItem.gstPercent) || 18
                     ]);
                 }
             } else {
@@ -174,7 +178,8 @@ export default function InventoryPage() {
                         conversionFactor: factor,
                         expiryDate: newItem.expiryDate,
                         batchNo: newItem.batchNo,
-                        hsnCode: newItem.hsnCode
+                        hsnCode: newItem.hsnCode,
+                        gstPercent: parseFloat(newItem.gstPercent) || 18
                     });
                 }
             }
@@ -235,7 +240,7 @@ export default function InventoryPage() {
                     </Button>
                     <Button className={styles.addButton} onClick={() => {
                         setEditMode(false);
-                        setNewItem({ name: "", sku: "", qty: "", price: "", baseUnit: "gram", displayUnit: "kilogram", conversionFactor: "1000" });
+                        setNewItem({ name: "", sku: "", qty: "", price: "", baseUnit: "gram", displayUnit: "kilogram", conversionFactor: "1000", gstPercent: "18" });
                         setIsAddOpen(true);
                     }}>
                         <Plus size={24} />
@@ -579,6 +584,51 @@ export default function InventoryPage() {
                                 onChange={(e) => setNewItem({ ...newItem, hsnCode: e.target.value })}
                             />
                         </div>
+                    </div>
+
+                    {/* GST % Selector */}
+                    <div>
+                        <label className={styles.modalLabel}>GST Tax Rate (%)</label>
+                        <div className="flex flex-wrap gap-2">
+                            {['0', '5', '12', '18', '28'].map(rate => (
+                                <button
+                                    key={rate}
+                                    type="button"
+                                    onClick={() => setNewItem({ ...newItem, gstPercent: rate })}
+                                    className={clsx(
+                                        "px-3 py-1.5 rounded-full text-sm font-medium transition-all border",
+                                        newItem.gstPercent === rate
+                                            ? "bg-emerald-600 text-white border-emerald-500"
+                                            : "bg-white/5 text-white/60 border-white/10 hover:bg-white/10"
+                                    )}
+                                >
+                                    {rate}%
+                                </button>
+                            ))}
+                            <button
+                                type="button"
+                                onClick={() => setNewItem({ ...newItem, gstPercent: 'custom' })}
+                                className={clsx(
+                                    "px-3 py-1.5 rounded-full text-sm font-medium transition-all border",
+                                    !['0', '5', '12', '18', '28'].includes(newItem.gstPercent)
+                                        ? "bg-emerald-600 text-white border-emerald-500"
+                                        : "bg-white/5 text-white/60 border-white/10 hover:bg-white/10"
+                                )}
+                            >
+                                ✏️ Custom
+                            </button>
+                        </div>
+                        {!['0', '5', '12', '18', '28'].includes(newItem.gstPercent) && (
+                            <div className="mt-2">
+                                <Input
+                                    type="number"
+                                    placeholder="Enter custom GST %"
+                                    value={newItem.gstPercent === 'custom' ? '' : newItem.gstPercent}
+                                    className={styles.modalInput}
+                                    onChange={(e) => setNewItem({ ...newItem, gstPercent: e.target.value })}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <Button

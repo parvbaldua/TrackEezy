@@ -202,8 +202,10 @@ export const GoogleSheetsService = {
     async getInventory(token, spreadsheetId) {
         try {
             console.log("Fetching inventory...", { spreadsheetId, token: token?.slice(0, 10) + "..." });
-            // Fetch A2:J to skip headers
-            const url = `${BASE_URL}/${spreadsheetId}/values/A2:J`;
+            // Ensure headers are up to date (auto-migrates GST % column for existing sheets)
+            await this.initializeSheet(token, spreadsheetId);
+            // Fetch A2:K to skip headers (K = GST %)
+            const url = `${BASE_URL}/${spreadsheetId}/values/A2:K`;
             const response = await fetch(url, {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -226,7 +228,7 @@ export const GoogleSheetsService = {
             const rows = data.values || [];
 
             // Map rows to objects
-            // Columns: 0:Name, 1:SKU, 2:Qty, 3:Price, 4:BaseUnit, 5:DisplayUnit, 6:ConvFactor, 7:Expiry, 8:Batch, 9:HSN
+            // Columns: 0:Name, 1:SKU, 2:Qty, 3:Price, 4:BaseUnit, 5:DisplayUnit, 6:ConvFactor, 7:Expiry, 8:Batch, 9:HSN, 10:GST%
             const inventory = rows.map((row, index) => {
                 if (!row[0]) return null; // Skip empty names
 
@@ -245,7 +247,8 @@ export const GoogleSheetsService = {
                     low: (qty / factor) < 10, // Low stock logic
                     expiryDate: row[7] || "",
                     batchNo: row[8] || "",
-                    hsnCode: row[9] || ""
+                    hsnCode: row[9] || "",
+                    gstPercent: parseFloat(row[10]) || 18
                 };
             }).filter(item => item !== null); // Remove nulls
 
@@ -338,17 +341,40 @@ export const GoogleSheetsService = {
      */
     async initializeSheet(token, spreadsheetId) {
         try {
-            // Check if headers exist in A1:J1
-            const checkUrl = `${BASE_URL}/${spreadsheetId}/values/A1:J1`;
+            // Check if headers exist in A1:K1 AND check formatting of A1
+            const checkUrl = `${BASE_URL}/${spreadsheetId}/values/A1:K1?valueRenderOption=UNFORMATTED_VALUE`;
+            // We also need to check formatting, but values endpoint doesn't return format. 
+            // We'll optimistically check specific formatting via a separate call or just rely on a flag.
+            // To be robust and avoid extra calls on every load for established sheets, let's use the spreadsheet.get method for A1's format.
+
+            // 1. Fetch values
             const checkRes = await fetch(checkUrl, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const checkData = await checkRes.json();
             const rows = checkData.values || [];
 
-            // If first row is empty, write headers
+            // 2. Fetch A1 formatting to see if we need to apply styles
+            const formatUrl = `${BASE_URL}/${spreadsheetId}?ranges=A1&fields=sheets.data.rowData.values.userEnteredFormat.backgroundColor`;
+            const formatRes = await fetch(formatUrl, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            const formatData = await formatRes.json();
+            // Check if A1 has our specific dark teal background color (approximate check)
+            const a1Format = formatData.sheets?.[0]?.data?.[0]?.rowData?.[0]?.values?.[0]?.userEnteredFormat;
+            const bgColor = a1Format?.backgroundColor || {};
+            // Desired: Red: 0.106, Green: 0.263, Blue: 0.196
+            // We'll check if it's missing or significantly different
+            const isFormatted =
+                Math.abs((bgColor.red || 0) - 0.106) < 0.01 &&
+                Math.abs((bgColor.green || 0) - 0.263) < 0.01 &&
+                Math.abs((bgColor.blue || 0) - 0.196) < 0.01;
+
+            let needsFormatting = !isFormatted;
+
+            // If first row is empty, write all headers
             if (rows.length === 0) {
-                const updateUrl = `${BASE_URL}/${spreadsheetId}/values/A1:J1?valueInputOption=USER_ENTERED`;
+                const updateUrl = `${BASE_URL}/${spreadsheetId}/values/A1:K1?valueInputOption=USER_ENTERED`;
                 await fetch(updateUrl, {
                     method: "PUT",
                     headers: {
@@ -356,7 +382,67 @@ export const GoogleSheetsService = {
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        values: [["Product Name", "SKU", "Quantity", "Price", "Base Unit", "Display Unit", "Conversion Factor", "Expiry Date", "Batch No", "HSN Code"]],
+                        values: [["Product Name", "SKU", "Quantity", "Price", "Base Unit", "Display Unit", "Conversion Factor", "Expiry Date", "Batch No", "HSN Code", "GST %"]],
+                    }),
+                });
+                needsFormatting = true;
+            } else if (!rows[0][10]) {
+                // Migration: existing sheet missing GST % header in column K
+                const updateUrl = `${BASE_URL}/${spreadsheetId}/values/K1?valueInputOption=USER_ENTERED`;
+                await fetch(updateUrl, {
+                    method: "PUT",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        values: [["GST %"]],
+                    }),
+                });
+                needsFormatting = true;
+            }
+
+            // Apply bold + background formatting to header row
+            if (needsFormatting) {
+                // Get sheet ID
+                const metaUrl = `${BASE_URL}/${spreadsheetId}?fields=sheets.properties`;
+                const metaRes = await fetch(metaUrl, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                const metaData = await metaRes.json();
+                const sheetId = metaData.sheets?.[0]?.properties?.sheetId || 0;
+
+                const formatUrl = `${BASE_URL}/${spreadsheetId}:batchUpdate`;
+                await fetch(formatUrl, {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        requests: [{
+                            repeatCell: {
+                                range: {
+                                    sheetId: sheetId,
+                                    startRowIndex: 0,
+                                    endRowIndex: 1,
+                                    startColumnIndex: 0,
+                                    endColumnIndex: 11 // A to K
+                                },
+                                cell: {
+                                    userEnteredFormat: {
+                                        backgroundColor: { red: 0.106, green: 0.263, blue: 0.196 }, // Dark Teal #1B4332
+                                        textFormat: {
+                                            bold: true,
+                                            foregroundColor: { red: 1, green: 1, blue: 1 }, // White text
+                                            fontSize: 11
+                                        },
+                                        horizontalAlignment: "CENTER"
+                                    }
+                                },
+                                fields: "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)"
+                            }
+                        }]
                     }),
                 });
             }
@@ -389,8 +475,8 @@ export const GoogleSheetsService = {
             // Row index is 0-based. Sheet rows are 1-based.
             const sheetRow = rowIndex + 1; // e.g. Index 0 is Row 1 (Header), Index 1 is Row 2
 
-            // 3. Update the Row (Columns A:J)
-            const updateUrl = `${BASE_URL}/${spreadsheetId}/values/A${sheetRow}:J${sheetRow}?valueInputOption=USER_ENTERED`;
+            // 3. Update the Row (Columns A:K)
+            const updateUrl = `${BASE_URL}/${spreadsheetId}/values/A${sheetRow}:K${sheetRow}?valueInputOption=USER_ENTERED`;
             const updateRes = await fetch(updateUrl, {
                 method: "PUT",
                 headers: {
@@ -408,7 +494,8 @@ export const GoogleSheetsService = {
                         itemData.conversionFactor,
                         itemData.expiryDate || '',
                         itemData.batchNo || '',
-                        itemData.hsnCode || ''
+                        itemData.hsnCode || '',
+                        itemData.gstPercent != null ? itemData.gstPercent : 18
                     ]],
                 }),
             });
@@ -588,8 +675,7 @@ export const GoogleSheetsService = {
                 });
             }
 
-            // 2. Ensure Headers are Correct (Update A1:E1)
-            // We do this always to ensure "Item Details" column exists for legacy sheets
+            // 2. Ensure Headers are Correct and Formatted
             const updateUrl = `${BASE_URL}/${spreadsheetId}/values/Sales!A1:E1?valueInputOption=USER_ENTERED`;
             await fetch(updateUrl, {
                 method: "PUT",
@@ -602,6 +688,60 @@ export const GoogleSheetsService = {
                 }),
             });
 
+            // Check formatting of Sales!A1
+            const formatUrl = `${BASE_URL}/${spreadsheetId}?ranges=Sales!A1&fields=sheets.data.rowData.values.userEnteredFormat.backgroundColor`;
+            const formatRes = await fetch(formatUrl, { headers: { Authorization: `Bearer ${token}` } });
+            const formatData = await formatRes.json();
+            const a1Format = formatData.sheets?.[0]?.data?.[0]?.rowData?.[0]?.values?.[0]?.userEnteredFormat;
+            const bgColor = a1Format?.backgroundColor || {};
+            const isFormatted =
+                Math.abs((bgColor.red || 0) - 0.106) < 0.01 &&
+                Math.abs((bgColor.green || 0) - 0.263) < 0.01 &&
+                Math.abs((bgColor.blue || 0) - 0.196) < 0.01;
+
+            if (!isFormatted) {
+                // Get sheet ID for "Sales"
+                const metaUrl = `${BASE_URL}/${spreadsheetId}?fields=sheets.properties`;
+                const metaRes = await fetch(metaUrl, { headers: { Authorization: `Bearer ${token}` } });
+                const metaData = await metaRes.json();
+                const sheetId = metaData.sheets?.find(s => s.properties?.title === "Sales")?.properties?.sheetId;
+
+                if (sheetId !== undefined) {
+                    const batchUrl = `${BASE_URL}/${spreadsheetId}:batchUpdate`;
+                    await fetch(batchUrl, {
+                        method: "POST",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            requests: [{
+                                repeatCell: {
+                                    range: {
+                                        sheetId: sheetId,
+                                        startRowIndex: 0,
+                                        endRowIndex: 1,
+                                        startColumnIndex: 0,
+                                        endColumnIndex: 5 // A to E
+                                    },
+                                    cell: {
+                                        userEnteredFormat: {
+                                            backgroundColor: { red: 0.106, green: 0.263, blue: 0.196 }, // Dark Teal
+                                            textFormat: {
+                                                bold: true,
+                                                foregroundColor: { red: 1, green: 1, blue: 1 }, // White
+                                                fontSize: 11
+                                            },
+                                            horizontalAlignment: "CENTER"
+                                        }
+                                    },
+                                    fields: "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)"
+                                }
+                            }]
+                        }),
+                    });
+                }
+            }
         } catch (e) {
             console.error("Init Sales Sheet error", e);
         }
@@ -647,6 +787,8 @@ export const GoogleSheetsService = {
      */
     async getSalesHistory(token, spreadsheetId) {
         try {
+            // Ensure sheet exists and headers are formatted
+            await this.initializeSalesSheet(token, spreadsheetId);
             const url = `${BASE_URL}/${spreadsheetId}/values/Sales!A2:E`;
             const response = await fetch(url, {
                 headers: { Authorization: `Bearer ${token}` },

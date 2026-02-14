@@ -133,9 +133,22 @@ export default function ReportsPage() {
         };
     }, [inventory]);
 
-    // GST Breakdown (assuming 18% GST on revenue - 9% CGST + 9% SGST)
+    // GST Breakdown — uses weighted average GST rate from product-level data
     const gstStats = useMemo(() => {
-        const gstRate = 0.18;
+        // Calculate weighted average GST rate from inventory
+        let totalValue = 0;
+        let weightedGst = 0;
+        inventory.forEach(item => {
+            const q = parseFloat(String(item.qty || '0').replace(/,/g, '')) || 0;
+            const p = parseFloat(String(item.price || '0').replace(/,/g, '')) || 0;
+            const factor = item.conversionFactor || 1;
+            const value = (q / factor) * p;
+            const rate = item.gstPercent != null ? item.gstPercent : 18;
+            totalValue += value;
+            weightedGst += value * rate;
+        });
+        const avgGstRate = totalValue > 0 ? (weightedGst / totalValue) : 18;
+        const gstRate = avgGstRate / 100;
         const baseAmount = totalRevenue / (1 + gstRate);
         const totalGst = totalRevenue - baseAmount;
         const cgst = totalGst / 2;
@@ -146,9 +159,10 @@ export default function ReportsPage() {
             cgst,
             sgst,
             totalGst,
-            totalWithGst: totalRevenue
+            totalWithGst: totalRevenue,
+            avgGstRate: avgGstRate
         };
-    }, [totalRevenue]);
+    }, [totalRevenue, inventory]);
 
     // P&L Calculations (estimated - assumes 20% profit margin)
     const pnlStats = useMemo(() => {
@@ -173,9 +187,9 @@ export default function ReportsPage() {
 
         if (type === 'inventory') {
             filename = `inventory_${new Date().toISOString().split('T')[0]}.csv`;
-            csvContent = "Product Name,SKU,Quantity,Price,Base Unit,Display Unit,Conversion Factor,Expiry Date,Batch No,HSN Code\n";
+            csvContent = "Product Name,SKU,Quantity,Price,Base Unit,Display Unit,Conversion Factor,Expiry Date,Batch No,HSN Code,GST %\n";
             inventory.forEach(item => {
-                csvContent += `"${item.name}","${item.sku || ''}",${item.qty},${item.price},"${item.baseUnit}","${item.displayUnit}",${item.conversionFactor},"${item.expiryDate || ''}","${item.batchNo || ''}","${item.hsnCode || ''}"\n`;
+                csvContent += `"${item.name}","${item.sku || ''}",${item.qty},${item.price},"${item.baseUnit}","${item.displayUnit}",${item.conversionFactor},"${item.expiryDate || ''}","${item.batchNo || ''}","${item.hsnCode || ''}",${item.gstPercent != null ? item.gstPercent : 18}\n`;
             });
         } else if (type === 'sales') {
             filename = `weekly_sales_${new Date().toISOString().split('T')[0]}.csv`;
@@ -188,8 +202,8 @@ export default function ReportsPage() {
             csvContent = "Description,Amount (₹)\n";
             csvContent += `Total Revenue (with GST),${gstStats.totalWithGst.toFixed(2)}\n`;
             csvContent += `Base Amount,${gstStats.baseAmount.toFixed(2)}\n`;
-            csvContent += `CGST (9%),${gstStats.cgst.toFixed(2)}\n`;
-            csvContent += `SGST (9%),${gstStats.sgst.toFixed(2)}\n`;
+            csvContent += `CGST (${(gstStats.avgGstRate / 2).toFixed(1)}%),${gstStats.cgst.toFixed(2)}\n`;
+            csvContent += `SGST (${(gstStats.avgGstRate / 2).toFixed(1)}%),${gstStats.sgst.toFixed(2)}\n`;
             csvContent += `Total GST,${gstStats.totalGst.toFixed(2)}\n`;
         }
 
@@ -362,7 +376,7 @@ export default function ReportsPage() {
                 <>
                     <Card className="mb-4">
                         <h3 className="text-lg font-semibold text-white mb-4">GST Breakdown (Weekly)</h3>
-                        <p className="text-xs text-white/40 mb-4">Based on 18% GST (9% CGST + 9% SGST)</p>
+                        <p className="text-xs text-white/40 mb-4">Based on product-level GST rates (avg {gstStats.avgGstRate.toFixed(1)}%)</p>
 
                         <div className="space-y-4">
                             <div className="flex justify-between items-center py-3 border-b border-white/10">
@@ -374,11 +388,11 @@ export default function ReportsPage() {
                                 <span className="text-white">{formatCurrency(gstStats.baseAmount)}</span>
                             </div>
                             <div className="flex justify-between items-center py-3 border-b border-white/10">
-                                <span className="text-white/60">CGST @ 9%</span>
+                                <span className="text-white/60">CGST @ {(gstStats.avgGstRate / 2).toFixed(1)}%</span>
                                 <span className="text-orange-400">{formatCurrency(gstStats.cgst)}</span>
                             </div>
                             <div className="flex justify-between items-center py-3 border-b border-white/10">
-                                <span className="text-white/60">SGST @ 9%</span>
+                                <span className="text-white/60">SGST @ {(gstStats.avgGstRate / 2).toFixed(1)}%</span>
                                 <span className="text-orange-400">{formatCurrency(gstStats.sgst)}</span>
                             </div>
                             <div className="flex justify-between items-center py-3 bg-orange-500/10 rounded-lg px-3 -mx-3">

@@ -131,7 +131,8 @@ export default function BillingPage() {
                 maxQty: typeof product.qty === 'string' ? parseInt(product.qty) : product.qty,
                 displayUnit: product.displayUnit || 'piece',
                 baseUnit: product.baseUnit || 'piece',
-                conversionFactor: factor
+                conversionFactor: factor,
+                gstPercent: product.gstPercent != null ? product.gstPercent : 18
             }];
         });
     };
@@ -181,9 +182,13 @@ export default function BillingPage() {
 
     const totalItems = useMemo(() => cart.reduce((sum, item) => sum + item.qty, 0), [cart]);
 
-    // Derived Calculations
-    const gstRate = 0.18;
-    const gstAmount = totalAmount * gstRate;
+    // Derived Calculations — per-item GST
+    const gstAmount = useMemo(() => {
+        return cart.reduce((sum, item) => {
+            const rate = (item.gstPercent != null ? item.gstPercent : 18) / 100;
+            return sum + (item.price * item.qty * rate);
+        }, 0);
+    }, [cart]);
     const netAmount = totalAmount + gstAmount;
 
 
@@ -206,7 +211,7 @@ export default function BillingPage() {
 
         message += `------------------------------\n`;
         message += `*${t('billing.subtotal')}:* ₹${totalAmount.toFixed(2)}\n`;
-        message += `*${t('billing.gst')} (18%):* ₹${gstAmount.toFixed(2)}\n`;
+        message += `*${t('billing.gst')}:* ₹${gstAmount.toFixed(2)}\n`;
         message += `*${t('billing.total')}:* ₹${netAmount.toFixed(2)}\n`;
         message += `------------------------------\n`;
         message += `Thank you for shopping!`;
@@ -499,7 +504,7 @@ export default function BillingPage() {
                             <span>₹{totalAmount.toFixed(2)}</span>
                         </div>
                         <div className={styles.summaryRow}>
-                            <span>{t('billing.tax')} (18%)</span>
+                            <span>{t('billing.tax')} (GST)</span>
                             <span>₹{gstAmount.toFixed(2)}</span>
                         </div>
                         <div className={styles.totalRow}>
@@ -598,7 +603,7 @@ export default function BillingPage() {
                             </tr>
                             <tr className="subtotal-row">
                                 <td colSpan={2}></td>
-                                <td className="text-right">{t('billing.tax')} (18% GST):</td>
+                                <td className="text-right">{t('billing.tax')} (GST):</td>
                                 <td className="text-right">{gstAmount.toFixed(2)}</td>
                             </tr>
                             <tr className="total-row">
