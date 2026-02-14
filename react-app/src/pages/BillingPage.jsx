@@ -9,7 +9,6 @@ import clsx from "clsx";
 import { useAuth } from "../context/AuthProvider";
 import { GoogleSheetsService } from "../services/sheets";
 import { useTranslation } from "../context/LanguageContext";
-import { generateInvoicePDF, downloadPDF } from "../lib/pdfGenerator";
 
 export default function BillingPage() {
     const { inventory, shopName, shopAddress, shopPhone, shopGstin, sheetUrl, fetchInventory, getSheetId } = useApp();
@@ -188,22 +187,9 @@ export default function BillingPage() {
     const netAmount = totalAmount + gstAmount;
 
 
-    // Actions - Use PDF on mobile since window.print() doesn't work in TWA/WebView
+    // Actions
     const handlePrint = () => {
-        const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
-        if (isMobile) {
-            const invoiceId = Date.now().toString().slice(-6);
-            const doc = generateInvoicePDF({
-                format: "pos",
-                shop: { name: shopName, address: shopAddress, phone: shopPhone, gstin: shopGstin },
-                cart: cart.map(item => ({ ...item, discountPercent: 0, gstEnabled: false, gstPercent: 0 })),
-                totals: { subtotal: totalAmount, totalDiscount: 0, afterDiscount: totalAmount, totalGst: gstAmount, grandTotal: netAmount },
-                invoiceId: invoiceId
-            });
-            downloadPDF(doc, `invoice_${invoiceId}.pdf`);
-        } else {
-            window.print();
-        }
+        window.print();
     };
 
     const handleWhatsApp = () => {

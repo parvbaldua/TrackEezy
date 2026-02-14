@@ -36,12 +36,18 @@ export function AuthProvider({ children }) {
 
                 setTimeout(refreshAccessToken, refreshTime);
             } else {
-                // Clear state if refresh fails
-                if (user) logout();
+                // Don't call logout() here — it clears all localStorage (shop config, sheet URL, etc.)
+                // Just silently reset auth state
+                setUser(null);
+                setAccessToken(null);
+                setIsAdmin(false);
             }
         } catch (error) {
             console.error("Session refresh failed", error);
-            if (user) logout();
+            // Don't call logout() — just reset auth state, preserve app config
+            setUser(null);
+            setAccessToken(null);
+            setIsAdmin(false);
         } finally {
             setLoading(false);
         }
