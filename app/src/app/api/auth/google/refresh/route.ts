@@ -5,7 +5,9 @@ import { cookies } from "next/headers";
 export async function POST(req: NextRequest) {
     try {
         const cookieStore = await cookies();
-        const refreshToken = cookieStore.get("akb_refresh_token")?.value;
+        // Check new cookie name first, fallback to legacy name
+        const refreshToken = cookieStore.get("akb_refresh_token")?.value
+            || cookieStore.get("bijnex_refresh_token")?.value;
 
         if (!refreshToken) {
             return NextResponse.json({ error: "No refresh token found" }, { status: 401 });
