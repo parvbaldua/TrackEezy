@@ -9,7 +9,9 @@ export function middleware(request: NextRequest) {
         "http://localhost:5173",
         "http://localhost:3000",
         "https://aapkabakaya.vercel.app",
-        "https://www.aapkabakaya.vercel.app"
+        "https://www.aapkabakaya.vercel.app",
+        "https://aapkabakaya.com",
+        "https://www.aapkabakaya.com"
     ];
 
     // Check if origin is allowed
