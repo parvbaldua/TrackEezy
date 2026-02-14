@@ -243,9 +243,24 @@ export default function ManualBillingPage() {
         }
     };
 
-    // Print Handler
+    // Print Handler - Use PDF on mobile since window.print() doesn't work in TWA/WebView
     const handlePrint = () => {
-        window.print();
+        // Check if we're on mobile or in a WebView where print doesn't work
+        const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+        if (isMobile) {
+            // Generate and download PDF instead
+            const invoiceId = Date.now().toString().slice(-6);
+            const doc = generateInvoicePDF({
+                format: "pos",
+                shop: { name: shopName, address: shopAddress, phone: shopPhone, gstin: shopGstin },
+                cart: cart,
+                totals: cartTotals,
+                invoiceId: invoiceId
+            });
+            downloadPDF(doc, `invoice_${invoiceId}.pdf`);
+        } else {
+            window.print();
+        }
     };
 
     // Open Share Modal
