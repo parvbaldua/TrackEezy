@@ -51,8 +51,19 @@ export function AppProvider({ children }) {
                 if (legacyPicks) localStorage.setItem("akb_quick_picks", legacyPicks);
             }
         }
+        // Clean inventory suffixes from sheet name (e.g. "Parv Store - Inventory(BijNex)" → "Parv Store")
+        const cleanShopName = (name) => {
+            if (!name) return name;
+            return name
+                .replace(/ - Inventory\s*\(AapKaBakaya\)/gi, "")
+                .replace(/ - Inventory\s*\(BijNex\)/gi, "")
+                .replace(/ - Inventory\s*\(Biznex\)/gi, "")
+                .replace(/ - Inventory\s*\(TrackEezy\)/gi, "")
+                .replace(/ - Inventory$/gi, "")
+                .trim();
+        };
 
-        if (savedName) setShopName(savedName);
+        if (savedName) setShopName(cleanShopName(savedName));
         if (savedAddress) setShopAddress(savedAddress);
         if (savedPhone) setShopPhone(savedPhone);
         if (savedGstin) setShopGstin(savedGstin);
