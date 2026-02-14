@@ -1,0 +1,20 @@
+﻿git : To https://githu
+b.com/parvbaldua/Track
+Eezy.git
+At line:1 char:1
++ git push 2>&1 | 
+Out-File -Encoding 
+UTF8 push_output.txt
++ ~~~~~~~~~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: (To https:/   
+ /gith...a/TrackEe    
+zy.git:String) []    
+, RemoteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+   da3327af..a40c1854 
+ main -> main

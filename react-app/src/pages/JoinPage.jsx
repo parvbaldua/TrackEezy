@@ -25,8 +25,8 @@ export default function JoinPage() {
 
         // Save to localStorage
         const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheet}`;
-        localStorage.setItem('bijnex_shop_name', decodedShopName);
-        localStorage.setItem('bijnex_sheet_url', sheetUrl);
+        localStorage.setItem('akb_shop_name', decodedShopName);
+        localStorage.setItem('akb_sheet_url', sheetUrl);
 
         // Trigger AppContext to re-read from localStorage
         refreshConfig();

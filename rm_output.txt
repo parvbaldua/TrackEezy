@@ -1,0 +1,23 @@
+﻿git : fatal: pathspec 
+'cleanup_output.txt' 
+did not match any 
+files
+At line:1 char:1
++ git rm --cached 
+status_check.txt 
+duplicate_project.ps1 
+cleanup_output ...
++ ~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: (fatal: pat   
+ hspec...match any    
+ files:String) []    
+, RemoteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 

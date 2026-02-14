@@ -21,7 +21,7 @@ export default function ProfilePage() {
     const [address, setAddress] = useState(shopAddress || "");
     const [phone, setPhone] = useState(shopPhone || "");
     const [gstin, setGstin] = useState(shopGstin || "");
-    const [upiId, setUpiId] = useState(localStorage.getItem('bijnex_upi_id') || "");
+    const [upiId, setUpiId] = useState(localStorage.getItem('akb_upi_id') || "");
 
     const menuItems = [
         { icon: Database, label: t('profile.databaseSync'), desc: "Google Sheets status" },
@@ -34,9 +34,9 @@ export default function ProfilePage() {
         saveConfig(name, sheetUrl, address, phone, gstin);
         // Save UPI ID separately
         if (upiId) {
-            localStorage.setItem('bijnex_upi_id', upiId);
+            localStorage.setItem('akb_upi_id', upiId);
         } else {
-            localStorage.removeItem('bijnex_upi_id');
+            localStorage.removeItem('akb_upi_id');
         }
         setIsEditing(false);
     };

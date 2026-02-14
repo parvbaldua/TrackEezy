@@ -23,7 +23,7 @@ export default function BillingPage() {
     const [isListening, setIsListening] = useState(false);
 
     // UPI ID for payment QR (stored in localStorage)
-    const [upiId, setUpiId] = useState(localStorage.getItem('bijnex_upi_id') || '');
+    const [upiId, setUpiId] = useState(localStorage.getItem('akb_upi_id') || '');
 
     // Voice Search using Web Speech API (Zero Cost)
     const startVoiceSearch = () => {

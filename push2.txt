@@ -1,0 +1,16 @@
+﻿git : To https://github.com/p
+arvbaldua/TrackEezy.git
+At line:1 char:1
++ git push 2>&1 | Out-File 
+-Encoding UTF8 push2.txt
++ ~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (To http  
+  s://gith...a/TrackEezy.g   
+ it:String) [], RemoteExc    
+eption
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+   a40c1854..5e28bdf0  main 
+-> main

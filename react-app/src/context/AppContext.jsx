@@ -43,6 +43,12 @@ export function AppProvider({ children }) {
                 if (savedAddress) localStorage.setItem("akb_shop_address", savedAddress);
                 if (savedPhone) localStorage.setItem("akb_shop_phone", savedPhone);
                 if (savedGstin) localStorage.setItem("akb_shop_gstin", savedGstin);
+
+                // Migrate UPI and Quick Picks too
+                const legacyUpi = localStorage.getItem("bijnex_upi_id");
+                if (legacyUpi) localStorage.setItem("akb_upi_id", legacyUpi);
+                const legacyPicks = localStorage.getItem("bijnex_quick_picks");
+                if (legacyPicks) localStorage.setItem("akb_quick_picks", legacyPicks);
             }
         }
 

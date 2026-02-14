@@ -1,0 +1,7 @@
+﻿[main a40c1854] Cleanup: removed temp files and updated gitignore
+ 6 files changed, 9 insertions(+), 74 deletions(-)
+ delete mode 100644 debug_sha256.txt
+ delete mode 100644 duplicate_project.ps1
+ delete mode 100644 how --stat
+ delete mode 100644 release_sha256.txt
+ delete mode 100644 status_check.txt
