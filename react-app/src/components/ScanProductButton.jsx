@@ -111,24 +111,35 @@ export default function ScanProductButton({ onScanComplete, t }) {
         setOcrProgress(0);
 
         try {
-            const result = await scanProductLabel(file, setOcrProgress);
+            const ocrResult = await scanProductLabel(file, setOcrProgress);
 
-            // Send OCR fields to parent (only the text-based ones)
-            onScanComplete({
-                price: result.price || '',
-                expiryDate: result.expiryDate || '',
-                batchNo: result.batchNo || '',
-                hsnCode: result.hsnCode || '',
-                gstPercent: result.gstPercent || '',
-            });
+            // Build only detected fields (skip empty/undefined)
+            const detected = {};
+            const detectedLabels = [];
 
-            playBeep();
-            setShowTextScan(false);
-            setResult({ found: true, name: 'Label details scanned!' });
-            setTimeout(() => setResult(null), 2500);
+            if (ocrResult.price) { detected.price = ocrResult.price; detectedLabels.push(`MRP: ₹${ocrResult.price}`); }
+            if (ocrResult.expiryDate) { detected.expiryDate = ocrResult.expiryDate; detectedLabels.push(`Expiry: ${ocrResult.expiryDate}`); }
+            if (ocrResult.batchNo) { detected.batchNo = ocrResult.batchNo; detectedLabels.push(`Batch: ${ocrResult.batchNo}`); }
+            if (ocrResult.hsnCode) { detected.hsnCode = ocrResult.hsnCode; detectedLabels.push(`HSN: ${ocrResult.hsnCode}`); }
+            if (ocrResult.gstPercent) { detected.gstPercent = ocrResult.gstPercent; detectedLabels.push(`GST: ${ocrResult.gstPercent}%`); }
+            if (ocrResult.name) { detected.name = ocrResult.name; detectedLabels.push(`Name: ${ocrResult.name}`); }
+
+            if (detectedLabels.length > 0) {
+                onScanComplete(detected);
+                playBeep();
+                setShowTextScan(false);
+                setResult({ found: true, name: detectedLabels.join(' | ') });
+            } else {
+                setShowTextScan(false);
+                setResult({ found: false, error: 'Nothing detected', barcode: 'Try clearer photo with good light' });
+            }
+
+            setTimeout(() => setResult(null), 4000);
         } catch (err) {
             console.error('OCR error:', err);
-            setResult({ found: false, error: 'Text scan failed — fill manually' });
+            setShowTextScan(false);
+            setResult({ found: false, error: 'Scan failed — fill manually' });
+            setTimeout(() => setResult(null), 3000);
         } finally {
             setOcrLoading(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
