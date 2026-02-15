@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Camera, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { lookupBarcode, playBeep } from '../utils/barcodeUtils';
-import { extractTextFromImage, parseProductLabel } from '../utils/ocrParser';
+import { extractTextFromImage, parseProductLabel, preloadOcrWorker } from '../utils/ocrParser';
 
 export default function ScanProductButton({ onScanComplete, t }) {
+    // Pre-load Tesseract worker on mount (downloads lang data in background)
+    useEffect(() => { preloadOcrWorker(); }, []);
     const [scanning, setScanning] = useState(false);
     const [phase, setPhase] = useState('idle'); // idle, barcode, label, processing, done
     const [result, setResult] = useState(null);
