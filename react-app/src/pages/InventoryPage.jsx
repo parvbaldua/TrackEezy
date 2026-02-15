@@ -54,16 +54,13 @@ export default function InventoryPage() {
         }
     }, [searchParams]);
 
-    // OCR Scan Handler
+    // Barcode Scan Handler
     const handleScanComplete = (scanResult) => {
         setNewItem(prev => ({
             ...prev,
             name: scanResult.name || prev.name,
+            sku: scanResult.sku || prev.sku,
             price: scanResult.price || prev.price,
-            expiryDate: scanResult.expiryDate || prev.expiryDate,
-            batchNo: scanResult.batchNo || prev.batchNo,
-            hsnCode: scanResult.hsnCode || prev.hsnCode,
-            gstPercent: scanResult.gstPercent || prev.gstPercent,
             baseUnit: scanResult.baseUnit || prev.baseUnit,
             displayUnit: scanResult.displayUnit || prev.displayUnit,
             conversionFactor: scanResult.conversionFactor || prev.conversionFactor,
