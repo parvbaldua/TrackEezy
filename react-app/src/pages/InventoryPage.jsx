@@ -54,17 +54,23 @@ export default function InventoryPage() {
         }
     }, [searchParams]);
 
-    // Barcode Scan Handler
+    // Scan Handler (barcode + OCR)
     const handleScanComplete = (scanResult) => {
-        setNewItem(prev => ({
-            ...prev,
-            name: scanResult.name || prev.name,
-            sku: scanResult.sku || prev.sku,
-            price: scanResult.price || prev.price,
-            baseUnit: scanResult.baseUnit || prev.baseUnit,
-            displayUnit: scanResult.displayUnit || prev.displayUnit,
-            conversionFactor: scanResult.conversionFactor || prev.conversionFactor,
-        }));
+        setNewItem(prev => {
+            const updated = { ...prev };
+            // Only overwrite fields that have values from scan
+            if (scanResult.name) updated.name = scanResult.name;
+            if (scanResult.sku) updated.sku = scanResult.sku;
+            if (scanResult.price) updated.price = scanResult.price;
+            if (scanResult.baseUnit) updated.baseUnit = scanResult.baseUnit;
+            if (scanResult.displayUnit) updated.displayUnit = scanResult.displayUnit;
+            if (scanResult.conversionFactor) updated.conversionFactor = scanResult.conversionFactor;
+            if (scanResult.expiryDate) updated.expiryDate = scanResult.expiryDate;
+            if (scanResult.batchNo) updated.batchNo = scanResult.batchNo;
+            if (scanResult.hsnCode) updated.hsnCode = scanResult.hsnCode;
+            if (scanResult.gstPercent) updated.gstPercent = scanResult.gstPercent;
+            return updated;
+        });
     };
 
     const handleEditItem = (item) => {
