@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Camera, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { lookupBarcode, playBeep } from '../utils/barcodeUtils';
 
 export default function ScanProductButton({ onScanComplete, t }) {
@@ -20,7 +20,19 @@ export default function ScanProductButton({ onScanComplete, t }) {
         await new Promise(r => setTimeout(r, 300));
 
         try {
-            const scanner = new Html5Qrcode('barcode-reader');
+            const scanner = new Html5Qrcode('barcode-reader', {
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.UPC_E,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.CODE_93,
+                    Html5QrcodeSupportedFormats.ITF,
+                ],
+                verbose: false,
+            });
             scannerRef.current = scanner;
 
             await scanner.start(
