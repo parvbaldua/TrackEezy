@@ -337,9 +337,14 @@ export default function InventoryPage() {
                                             <p className={clsx(styles.stockCount, item.low && styles.stockLow)}>
                                                 {t('home.lowStock')}: {parseFloat((item.qty / (item.conversionFactor || 1)).toFixed(2))} {item.displayUnit}
                                             </p>
-                                            <Button variant="ghost" className="!p-1 h-auto text-white/50" onClick={() => handleEditItem(item)}>
-                                                <Edit2 size={14} />
-                                            </Button>
+                                            <div style={{ display: 'flex', gap: '2px' }}>
+                                                <Button variant="ghost" className="!p-1 h-auto text-white/50" onClick={() => handleEditItem(item)}>
+                                                    <Edit2 size={14} />
+                                                </Button>
+                                                <Button variant="ghost" className="!p-1 h-auto text-red-500" onClick={() => handleDeleteItem(item)}>
+                                                    <Trash2 size={14} />
+                                                </Button>
+                                            </div>
                                         </div>
                                     </div>
                                 </Card>
