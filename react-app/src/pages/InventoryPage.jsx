@@ -10,6 +10,7 @@ import { useAuth } from "../context/AuthProvider";
 import { GoogleSheetsService } from "../services/sheets";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "../context/LanguageContext";
+import ScanProductButton from "../components/ScanProductButton";
 
 export default function InventoryPage() {
     const { sheetUrl, inventory, fetchInventory, addInventoryItem, updateInventoryItem, removeInventoryItem, lastError, getSheetId } = useApp();
@@ -52,6 +53,22 @@ export default function InventoryPage() {
             setIsAddOpen(true);
         }
     }, [searchParams]);
+
+    // OCR Scan Handler
+    const handleScanComplete = (scanResult) => {
+        setNewItem(prev => ({
+            ...prev,
+            name: scanResult.name || prev.name,
+            price: scanResult.price || prev.price,
+            expiryDate: scanResult.expiryDate || prev.expiryDate,
+            batchNo: scanResult.batchNo || prev.batchNo,
+            hsnCode: scanResult.hsnCode || prev.hsnCode,
+            gstPercent: scanResult.gstPercent || prev.gstPercent,
+            baseUnit: scanResult.baseUnit || prev.baseUnit,
+            displayUnit: scanResult.displayUnit || prev.displayUnit,
+            conversionFactor: scanResult.conversionFactor || prev.conversionFactor,
+        }));
+    };
 
     const handleEditItem = (item) => {
         setEditMode(true);
@@ -390,6 +407,11 @@ export default function InventoryPage() {
 
             <Modal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title={editMode ? t('common.edit') : t('inventory.addProduct')}>
                 <div className="space-y-4">
+
+                    {/* OCR Scan Button — only in Add mode */}
+                    {!editMode && (
+                        <ScanProductButton onScanComplete={handleScanComplete} t={t} />
+                    )}
 
                     {/* 1. Product Name */}
                     <div>
