@@ -1,100 +1,118 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Camera, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { lookupBarcode, playBeep } from '../utils/barcodeUtils';
 
 export default function ScanProductButton({ onScanComplete, t }) {
     const [scanning, setScanning] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [result, setResult] = useState(null); // { found, name, barcode }
-    const scannerRef = useRef(null);
-    const containerRef = useRef(null);
+    const [result, setResult] = useState(null);
+    const videoRef = useRef(null);
+    const streamRef = useRef(null);
+    const animFrameRef = useRef(null);
     const hasScannedRef = useRef(false);
+
+    const stopCamera = useCallback(() => {
+        if (animFrameRef.current) {
+            cancelAnimationFrame(animFrameRef.current);
+            animFrameRef.current = null;
+        }
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach(track => track.stop());
+            streamRef.current = null;
+        }
+        setScanning(false);
+    }, []);
 
     const startScanner = async () => {
         setScanning(true);
         setResult(null);
         hasScannedRef.current = false;
 
-        // Small delay to let DOM render
-        await new Promise(r => setTimeout(r, 300));
-
         try {
-            const scanner = new Html5Qrcode('barcode-reader', {
-                formatsToSupport: [
-                    Html5QrcodeSupportedFormats.EAN_13,
-                    Html5QrcodeSupportedFormats.EAN_8,
-                    Html5QrcodeSupportedFormats.UPC_A,
-                    Html5QrcodeSupportedFormats.UPC_E,
-                    Html5QrcodeSupportedFormats.CODE_128,
-                    Html5QrcodeSupportedFormats.CODE_39,
-                    Html5QrcodeSupportedFormats.CODE_93,
-                    Html5QrcodeSupportedFormats.ITF,
-                ],
-                verbose: false,
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                }
             });
-            scannerRef.current = scanner;
+            streamRef.current = stream;
 
-            await scanner.start(
-                { facingMode: 'environment' },
-                {
-                    fps: 10,
-                    qrbox: { width: 280, height: 120 },
-                    aspectRatio: 1.5,
-                },
-                async (decodedText) => {
-                    // Prevent duplicate scans
-                    if (hasScannedRef.current) return;
-                    hasScannedRef.current = true;
+            // Wait for video ref to be available
+            await new Promise(r => setTimeout(r, 200));
 
-                    // BEEP!
-                    playBeep();
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+                await videoRef.current.play();
+            }
 
-                    // Stop camera
-                    try { await scanner.stop(); } catch (e) { }
-                    setScanning(false);
-                    setLoading(true);
+            // Check if BarcodeDetector is available (Chrome Android)
+            if ('BarcodeDetector' in window) {
+                const detector = new BarcodeDetector({
+                    formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'code_93', 'itf']
+                });
 
-                    // Lookup product
-                    const productData = await lookupBarcode(decodedText);
-                    setResult(productData);
-                    setLoading(false);
+                const detectLoop = async () => {
+                    if (hasScannedRef.current || !videoRef.current) return;
 
-                    // Auto-fill form
-                    onScanComplete({
-                        name: productData.name || '',
-                        price: productData.price || '',
-                        barcode: decodedText,
-                        baseUnit: productData.baseUnit,
-                        displayUnit: productData.displayUnit,
-                        conversionFactor: productData.conversionFactor,
-                        sku: decodedText, // Use barcode as SKU
-                    });
+                    try {
+                        const barcodes = await detector.detect(videoRef.current);
+                        if (barcodes.length > 0 && !hasScannedRef.current) {
+                            hasScannedRef.current = true;
+                            const code = barcodes[0].rawValue;
 
-                    // Auto-hide result after 2s
-                    setTimeout(() => setResult(null), 2500);
-                },
-                () => { } // Ignore scan errors (no barcode in frame)
-            );
+                            // BEEP + Vibrate
+                            playBeep();
+
+                            // Stop camera
+                            stopCamera();
+                            setLoading(true);
+
+                            // Lookup product
+                            const productData = await lookupBarcode(code);
+                            setResult(productData);
+                            setLoading(false);
+
+                            // Auto-fill form
+                            onScanComplete({
+                                name: productData.name || '',
+                                price: productData.price || '',
+                                barcode: code,
+                                baseUnit: productData.baseUnit,
+                                displayUnit: productData.displayUnit,
+                                conversionFactor: productData.conversionFactor,
+                                sku: code,
+                            });
+
+                            // Auto-hide result
+                            setTimeout(() => setResult(null), 3000);
+                            return;
+                        }
+                    } catch (e) {
+                        // Detection error — keep trying
+                    }
+
+                    animFrameRef.current = requestAnimationFrame(detectLoop);
+                };
+
+                // Start detection loop
+                detectLoop();
+            } else {
+                // Fallback: BarcodeDetector not available
+                setResult({ found: false, error: 'Barcode scanner not supported on this device' });
+                stopCamera();
+            }
         } catch (err) {
-            console.error('Scanner error:', err);
+            console.error('Camera error:', err);
             setScanning(false);
-            setResult({ found: false, error: 'Camera access denied' });
+            setResult({ found: false, error: 'Camera access denied — allow camera permission' });
         }
-    };
-
-    const stopScanner = async () => {
-        if (scannerRef.current) {
-            try { await scannerRef.current.stop(); } catch (e) { }
-            scannerRef.current = null;
-        }
-        setScanning(false);
     };
 
     // Cleanup on unmount
     useEffect(() => {
-        return () => { stopScanner(); };
-    }, []);
+        return () => stopCamera();
+    }, [stopCamera]);
 
     return (
         <div style={{ marginBottom: '12px' }}>
@@ -127,14 +145,48 @@ export default function ScanProductButton({ onScanComplete, t }) {
 
             {/* Live Camera View */}
             {scanning && (
-                <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '2px solid #3b82f6' }}>
-                    <div id="barcode-reader" ref={containerRef} style={{ width: '100%' }} />
+                <div style={{
+                    position: 'relative',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    border: '2px solid #3b82f6',
+                    background: '#000',
+                }}>
+                    <video
+                        ref={videoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        style={{
+                            width: '100%',
+                            height: '200px',
+                            objectFit: 'cover',
+                        }}
+                    />
 
-                    {/* Scanning indicator */}
+                    {/* Scan line animation */}
+                    <div style={{
+                        position: 'absolute',
+                        top: '30%', left: '10%', right: '10%',
+                        height: '2px',
+                        background: 'linear-gradient(90deg, transparent, #ef4444, #ef4444, transparent)',
+                        animation: 'scanline 2s ease-in-out infinite',
+                        boxShadow: '0 0 8px #ef4444',
+                    }} />
+
+                    {/* Scan frame overlay */}
+                    <div style={{
+                        position: 'absolute',
+                        top: '15%', left: '8%', right: '8%', bottom: '25%',
+                        border: '2px solid rgba(255,255,255,0.4)',
+                        borderRadius: '8px',
+                    }} />
+
+                    {/* Bottom overlay */}
                     <div style={{
                         position: 'absolute', bottom: 0, left: 0, right: 0,
                         padding: '10px',
-                        background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
+                        background: 'linear-gradient(transparent, rgba(0,0,0,0.85))',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                     }}>
                         <div style={{
@@ -143,13 +195,13 @@ export default function ScanProductButton({ onScanComplete, t }) {
                             animation: 'pulse 1s ease-in-out infinite',
                         }} />
                         <span style={{ color: '#fff', fontSize: '13px', fontWeight: '500' }}>
-                            Point at barcode...
+                            Point at barcode — auto-detects instantly
                         </span>
                     </div>
 
                     {/* Close button */}
                     <button
-                        onClick={stopScanner}
+                        onClick={stopCamera}
                         style={{
                             position: 'absolute', top: '8px', right: '8px',
                             background: 'rgba(0,0,0,0.6)', border: 'none',
@@ -188,7 +240,7 @@ export default function ScanProductButton({ onScanComplete, t }) {
                 }}>
                     {result.found ? (
                         <>
-                            <CheckCircle size={18} style={{ color: '#10b981' }} />
+                            <CheckCircle size={18} style={{ color: '#10b981', flexShrink: 0 }} />
                             <div>
                                 <p style={{ color: '#10b981', fontSize: '13px', fontWeight: '600', margin: 0 }}>Product Found!</p>
                                 <p style={{ color: '#fff', fontSize: '14px', margin: '2px 0 0' }}>{result.name}</p>
@@ -196,12 +248,12 @@ export default function ScanProductButton({ onScanComplete, t }) {
                         </>
                     ) : (
                         <>
-                            <AlertCircle size={18} style={{ color: '#3b82f6' }} />
+                            <AlertCircle size={18} style={{ color: '#3b82f6', flexShrink: 0 }} />
                             <div>
                                 <p style={{ color: '#3b82f6', fontSize: '13px', fontWeight: '600', margin: 0 }}>
                                     {result.error || 'Barcode Scanned'}
                                 </p>
-                                <p style={{ color: '#fff/70', fontSize: '13px', margin: '2px 0 0' }}>
+                                <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', margin: '2px 0 0' }}>
                                     {result.barcode ? `Code: ${result.barcode} — fill details manually` : 'Try again'}
                                 </p>
                             </div>
@@ -213,13 +265,11 @@ export default function ScanProductButton({ onScanComplete, t }) {
             <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        #barcode-reader video { border-radius: 10px; }
-        #barcode-reader { border: none !important; }
-        #barcode-reader__scan_region { background: transparent !important; }
-        #barcode-reader__dashboard { display: none !important; }
-        #barcode-reader img[alt="Info icon"] { display: none !important; }
-        #barcode-reader__dashboard_section_csr { display: none !important; }
-        #qr-shaded-region { border-color: #3b82f6 !important; }
+        @keyframes scanline {
+          0% { top: 20%; }
+          50% { top: 55%; }
+          100% { top: 20%; }
+        }
       `}</style>
         </div>
     );
