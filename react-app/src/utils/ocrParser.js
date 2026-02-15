@@ -4,7 +4,7 @@ import Tesseract from 'tesseract.js';
  * Run OCR on an image file and return extracted text
  */
 export async function extractTextFromImage(imageFile, onProgress) {
-    const result = await Tesseract.recognize(imageFile, 'eng+hin', {
+    const result = await Tesseract.recognize(imageFile, 'eng', {
         logger: (m) => {
             if (m.status === 'recognizing text' && onProgress) {
                 onProgress(Math.round(m.progress * 100));
