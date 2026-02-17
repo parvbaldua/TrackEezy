@@ -67,6 +67,21 @@ export default function LandingPage() {
     const [foundSheets, setFoundSheets] = useState([]);
     const [errorMsg, setErrorMsg] = useState(null);
 
+    // ─── App Mode Detection ───
+    const [isApp, setIsApp] = useState(false);
+    useEffect(() => {
+        const checkApp = () => {
+            // Check for standalone mode (PWA/TWA) or Android referrer
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                (document.referrer && document.referrer.includes('android-app://'));
+            if (isStandalone) {
+                setIsApp(true);
+                setAuthModalOpen(true); // Force open auth modal in app mode
+            }
+        };
+        checkApp();
+    }, []);
+
     // ─── Mouse Move Parallax ───
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
@@ -164,249 +179,255 @@ export default function LandingPage() {
     return (
         <>
             <div className={styles.pageContainer}>
-                {/* ═══ NAVBAR ═══ */}
-                <motion.nav className={styles.navbar}
-                    initial={{ y: -80, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 1, delay: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-                >
-                    <div className={styles.navContent}>
-                        <div className={styles.logo}>
-                            <div className={styles.logoIcon} />
-                            <span>AapKaBakaya</span>
-                        </div>
-                        <div className={styles.navLinks}>
-                            <a href="#platform" className={styles.desktopLink}>Platform</a>
-                            <a href="#about" className={styles.desktopLink}>Company</a>
-                            <button className={styles.navCta} onClick={() => openAuthModal()}>Get Started</button>
-                        </div>
-                    </div>
-                </motion.nav>
-
-                {/* ═══ HERO + SCROLL TEXT (Sticky BG) ═══ */}
-                <div className={styles.heroWrapper} ref={heroWrapRef} onMouseMove={handleMouseMove}>
-                    {/* Sticky BG that stays while text scrolls over */}
-                    <div className={styles.heroBgSticky}>
-                        <motion.div className={styles.heroBgImage}
-                            initial={{ scale: 1.1 }}
-                            animate={{ scale: 1 }}
-                            transition={{ duration: 2, ease: "easeOut" }}
-                        >
-                            <motion.div className={styles.heroOrb}
-                                style={{
-                                    width: '70vw', height: '70vw', top: '-15%', left: '-10%',
-                                    background: 'radial-gradient(circle, rgba(16, 185, 129, 0.45) 0%, rgba(16, 185, 129, 0.05) 60%, transparent 70%)',
-                                    x: orb1X, y: orb1Y
-                                }}
-                            />
-
-
-                        </motion.div>
-                        <div className={styles.heroBgOverlay} />
-
-                        {/* Hero Content (bottom-left aligned like reference) */}
-                        <motion.div className={styles.heroContent}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 1, delay: 0.3 }}
-                        >
-                            <motion.h1 className={styles.heroTitle}
-                                initial={{ y: 60, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ duration: 1, delay: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-                            >
-                                Manage your shop{" "}
-                                <span className={styles.heroHighlight}>smarter,<br />not harder.</span>
-                            </motion.h1>
-
-                            <motion.div className={styles.heroBottom}
-                                initial={{ y: 40, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ duration: 0.8, delay: 1.0 }}
-                            >
-                                <p className={styles.heroSubtitle}>
-                                    We simplify retail with smart inventory,<br />
-                                    instant billing, and automated reports<br />
-                                    for modern shop owners.
-                                </p>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-start' }}>
-                                    <a href="/app-release.apk" className={styles.heroCtaBtn} download style={{ textDecoration: 'none' }}>
-                                        <span className={styles.heroCtaText}>Download App</span>
-                                        <span className={styles.heroCtaIcon}><Download size={20} /></span>
-                                    </a>
-                                    <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', paddingLeft: '12px' }}>
-                                        Available for Android
-                                    </span>
-                                </div>
-                            </motion.div>
-
-                            <motion.div className={styles.scrollHint}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1, y: [0, 8, 0] }}
-                                transition={{ delay: 2, duration: 2, repeat: Infinity }}
-                            >
-                                <span>Discover</span>
-                                <ChevronDown size={14} />
-                            </motion.div>
-                        </motion.div>
-                    </div>
-
-                    {/* Scroll-linked rotating clock with features at tips */}
-                    <div className={styles.scrollTextSection}>
-                        {/* Clock moved to root to avoid overflow clipping */}
-                    </div>
-
-                    {/* ═══ PLATFORM / LIGHT SECTION (Now Dark & Inside Hero Wrapper) ═══ */}
-                    {/* Positioned absolute at bottom of scroll text area */}
-                    <motion.section className={styles.platformSection} id="platform"
-                        style={{
-                            position: 'absolute',
-                            top: '900vh',
-                            width: '100%',
-                            zIndex: 20
-                        }}
-                        initial={{ opacity: 0 }}
-                        whileInView={{ opacity: 1 }}
-                        viewport={{ once: true, margin: "-10%" }}
-                        transition={{ duration: 0.8 }}
+                {/* ═══ WEB LANDING PAGE CONTENT ═══ */}
+                {!isApp && (<>
+                    {/* ═══ NAVBAR ═══ */}
+                    <motion.nav className={styles.navbar}
+                        initial={{ y: -80, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ duration: 1, delay: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
                     >
-                        <div className={styles.lightSectionHeader}>
-                            <span className={styles.lightLabel} style={{ color: 'rgba(255,255,255,0.4)' }}>The Platform</span>
-                            <h2 className={styles.lightTitle} style={{ color: '#fff' }}>
-                                Built for Indian retail.<br />
-                                Fast, reliable, secure.
-                            </h2>
+                        <div className={styles.navContent}>
+                            <div className={styles.logo}>
+                                <div className={styles.logoIcon} />
+                                <span>AapKaBakaya</span>
+                            </div>
+                            <div className={styles.navLinks}>
+                                <a href="#platform" className={styles.desktopLink}>Platform</a>
+                                <a href="#about" className={styles.desktopLink}>Company</a>
+                                <button className={styles.navCta} onClick={() => openAuthModal()}>Get Started</button>
+                            </div>
                         </div>
+                    </motion.nav>
 
-                        <div className={styles.cardsGrid}>
-                            {FEATURE_CARDS.map((card, i) => (
-                                <motion.div
-                                    key={card.index}
-                                    className={`${styles.card} ${styles[card.cardStyle]}`}
-                                    initial={{ opacity: 0, y: 50 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true, margin: "-80px" }}
-                                    transition={{ duration: 0.7, delay: i * 0.3 }}
+                    {/* ═══ HERO + SCROLL TEXT (Sticky BG) ═══ */}
+                    <div className={styles.heroWrapper} ref={heroWrapRef} onMouseMove={handleMouseMove}>
+                        {/* Sticky BG that stays while text scrolls over */}
+                        <div className={styles.heroBgSticky}>
+                            <motion.div className={styles.heroBgImage}
+                                initial={{ scale: 1.1 }}
+                                animate={{ scale: 1 }}
+                                transition={{ duration: 2, ease: "easeOut" }}
+                            >
+                                <motion.div className={styles.heroOrb}
+                                    style={{
+                                        width: '70vw', height: '70vw', top: '-15%', left: '-10%',
+                                        background: 'radial-gradient(circle, rgba(16, 185, 129, 0.45) 0%, rgba(16, 185, 129, 0.05) 60%, transparent 70%)',
+                                        x: orb1X, y: orb1Y
+                                    }}
+                                />
+
+
+                            </motion.div>
+                            <div className={styles.heroBgOverlay} />
+
+                            {/* Hero Content (bottom-left aligned like reference) */}
+                            <motion.div className={styles.heroContent}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 1, delay: 0.3 }}
+                            >
+                                <motion.h1 className={styles.heroTitle}
+                                    initial={{ y: 60, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ duration: 1, delay: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
                                 >
-                                    <div className={styles.cardImageWrap}>
-                                        <img src={card.image} alt={card.title} className={styles.cardImage} />
-                                    </div>
-                                    <div className={styles.cardBody}>
-                                        <div>
-                                            <div className={styles.cardHeader}>
-                                                <span className={styles.cardIndex}>{card.index}</span>
-                                            </div>
-                                            <h3 className={styles.cardTitle}>{card.title}</h3>
-                                            <p className={styles.cardDesc}>{card.desc}</p>
-                                        </div>
+                                    Manage your shop{" "}
+                                    <span className={styles.heroHighlight}>smarter,<br />not harder.</span>
+                                </motion.h1>
+
+                                <motion.div className={styles.heroBottom}
+                                    initial={{ y: 40, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ duration: 0.8, delay: 1.0 }}
+                                >
+                                    <p className={styles.heroSubtitle}>
+                                        We simplify retail with smart inventory,<br />
+                                        instant billing, and automated reports<br />
+                                        for modern shop owners.
+                                    </p>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-start' }}>
+                                        <a href="/app-release.apk" className={styles.heroCtaBtn} download style={{ textDecoration: 'none' }}>
+                                            <span className={styles.heroCtaText}>Download App</span>
+                                            <span className={styles.heroCtaIcon}><Download size={20} /></span>
+                                        </a>
+                                        <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', paddingLeft: '12px' }}>
+                                            Available for Android
+                                        </span>
                                     </div>
                                 </motion.div>
+
+                                <motion.div className={styles.scrollHint}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1, y: [0, 8, 0] }}
+                                    transition={{ delay: 2, duration: 2, repeat: Infinity }}
+                                >
+                                    <span>Discover</span>
+                                    <ChevronDown size={14} />
+                                </motion.div>
+                            </motion.div>
+                        </div>
+
+                        {/* Scroll-linked rotating clock with features at tips */}
+                        <div className={styles.scrollTextSection}>
+                            {/* Clock moved to root to avoid overflow clipping */}
+                        </div>
+
+                        {/* ═══ PLATFORM / LIGHT SECTION (Now Dark & Inside Hero Wrapper) ═══ */}
+                        {/* Positioned absolute at bottom of scroll text area */}
+                        <motion.section className={styles.platformSection} id="platform"
+                            style={{
+                                position: 'absolute',
+                                top: '900vh',
+                                width: '100%',
+                                zIndex: 20
+                            }}
+                            initial={{ opacity: 0 }}
+                            whileInView={{ opacity: 1 }}
+                            viewport={{ once: true, margin: "-10%" }}
+                            transition={{ duration: 0.8 }}
+                        >
+                            <div className={styles.lightSectionHeader}>
+                                <span className={styles.lightLabel} style={{ color: 'rgba(255,255,255,0.4)' }}>The Platform</span>
+                                <h2 className={styles.lightTitle} style={{ color: '#fff' }}>
+                                    Built for Indian retail.<br />
+                                    Fast, reliable, secure.
+                                </h2>
+                            </div>
+
+                            <div className={styles.cardsGrid}>
+                                {FEATURE_CARDS.map((card, i) => (
+                                    <motion.div
+                                        key={card.index}
+                                        className={`${styles.card} ${styles[card.cardStyle]}`}
+                                        initial={{ opacity: 0, y: 50 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true, margin: "-80px" }}
+                                        transition={{ duration: 0.7, delay: i * 0.3 }}
+                                    >
+                                        <div className={styles.cardImageWrap}>
+                                            <img src={card.image} alt={card.title} className={styles.cardImage} />
+                                        </div>
+                                        <div className={styles.cardBody}>
+                                            <div>
+                                                <div className={styles.cardHeader}>
+                                                    <span className={styles.cardIndex}>{card.index}</span>
+                                                </div>
+                                                <h3 className={styles.cardTitle}>{card.title}</h3>
+                                                <p className={styles.cardDesc}>{card.desc}</p>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </motion.section>
+
+                    </div>
+
+                    {/* SPACER for Hero Wrapper height (controlled via CSS height: 450vh -> 600vh) */}
+
+                    {/* ═══ MARQUEE ═══ */}
+                    <div className={styles.marqueeSection}>
+                        <div className={styles.marqueeTrack}>
+                            {[...Array(6)].map((_, i) => (
+                                <span key={i} className={styles.marqueeText}>AapKaBakaya</span>
                             ))}
                         </div>
-                    </motion.section>
-
-                </div>
-
-                {/* SPACER for Hero Wrapper height (controlled via CSS height: 450vh -> 600vh) */}
-
-                {/* ═══ MARQUEE ═══ */}
-                <div className={styles.marqueeSection}>
-                    <div className={styles.marqueeTrack}>
-                        {[...Array(6)].map((_, i) => (
-                            <span key={i} className={styles.marqueeText}>AapKaBakaya</span>
-                        ))}
                     </div>
-                </div>
 
-                {/* ═══ ABOUT ═══ */}
-                <section className={styles.aboutSection} id="about">
-                    <motion.div className={styles.aboutGrid}
-                        initial={{ opacity: 0, y: 40 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-80px" }}
-                        transition={{ duration: 0.8 }}
-                    >
-                        <div className={styles.aboutImage}>
-                            <img src="/assets/about-img.png" alt="About AapKaBakaya"
-                                onError={(e) => { e.target.style.background = 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)'; e.target.style.minHeight = '400px'; }}
-                            />
-                        </div>
-                        <div>
-                            <span className={styles.aboutLabel}>Our Mission</span>
-                            <h3 className={styles.aboutTitle}>Making technology accessible for every shop owner.</h3>
-                            <p className={styles.aboutDesc}>
-                                AapKaBakaya is designed for the 63 million+ small retailers across India. We believe shop management shouldn't require expensive POS systems or complex software. Using Google Sheets as a backend, we provide enterprise-grade tools that work on any phone, anywhere.
-                            </p>
-                        </div>
-                    </motion.div>
-                </section>
-
-                {/* ═══ CTA (Dark, Abstract BG) ═══ */}
-                <section className={styles.ctaSection}>
-                    <div className={styles.ctaBg} />
-                    <div className={styles.ctaOverlay} />
-                    <motion.div className={styles.ctaContent}
-                        initial={{ opacity: 0, y: 40 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-80px" }}
-                        transition={{ duration: 0.8 }}
-                    >
-                        <span className={styles.ctaLabel}>Get Started Today</span>
-                        <h2 className={styles.ctaTitle}>Ready to run your<br />shop smarter?</h2>
-                        <div className={styles.ctaBtns}>
-                            <button className={styles.heroCtaBtn} onClick={() => openAuthModal('create_name')}>
-                                <span className={styles.heroCtaText}>Create Shop</span>
-                                <span className={styles.heroCtaIcon}><Store size={20} /></span>
-                            </button>
-                            <a href="/app-release.apk" className={styles.heroCtaBtn} download style={{ textDecoration: 'none' }}>
-                                <span className={styles.heroCtaText}>Download App</span>
-                                <span className={styles.heroCtaIcon}><Download size={20} /></span>
-                            </a>
-                        </div>
-                    </motion.div>
-                </section>
-
-                {/* ═══ FOOTER ═══ */}
-                <footer className={styles.footer}>
-                    <div className={styles.footerGrid}>
-                        <div className={styles.footerBrand}>
-                            <div className={styles.footerBrandName}>
-                                <div className={styles.logoIconSm} />
-                                AapKaBakaya
+                    {/* ═══ ABOUT ═══ */}
+                    <section className={styles.aboutSection} id="about">
+                        <motion.div className={styles.aboutGrid}
+                            initial={{ opacity: 0, y: 40 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: "-80px" }}
+                            transition={{ duration: 0.8 }}
+                        >
+                            <div className={styles.aboutImage}>
+                                <img src="/assets/about-img.png" alt="About AapKaBakaya"
+                                    onError={(e) => { e.target.style.background = 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)'; e.target.style.minHeight = '400px'; }}
+                                />
                             </div>
-                            <p className={styles.footerBrandDesc}>
-                                Smart shop management for modern Indian retail. Built to be simple, fast, and free.
-                            </p>
+                            <div>
+                                <span className={styles.aboutLabel}>Our Mission</span>
+                                <h3 className={styles.aboutTitle}>Making technology accessible for every shop owner.</h3>
+                                <p className={styles.aboutDesc}>
+                                    AapKaBakaya is designed for the 63 million+ small retailers across India. We believe shop management shouldn't require expensive POS systems or complex software. Using Google Sheets as a backend, we provide enterprise-grade tools that work on any phone, anywhere.
+                                </p>
+                            </div>
+                        </motion.div>
+                    </section>
+
+                    {/* ═══ CTA (Dark, Abstract BG) ═══ */}
+                    <section className={styles.ctaSection}>
+                        <div className={styles.ctaBg} />
+                        <div className={styles.ctaOverlay} />
+                        <motion.div className={styles.ctaContent}
+                            initial={{ opacity: 0, y: 40 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: "-80px" }}
+                            transition={{ duration: 0.8 }}
+                        >
+                            <span className={styles.ctaLabel}>Get Started Today</span>
+                            <h2 className={styles.ctaTitle}>Ready to run your<br />shop smarter?</h2>
+                            <div className={styles.ctaBtns}>
+                                <button className={styles.heroCtaBtn} onClick={() => openAuthModal('create_name')}>
+                                    <span className={styles.heroCtaText}>Create Shop</span>
+                                    <span className={styles.heroCtaIcon}><Store size={20} /></span>
+                                </button>
+                                <a href="/app-release.apk" className={styles.heroCtaBtn} download style={{ textDecoration: 'none' }}>
+                                    <span className={styles.heroCtaText}>Download App</span>
+                                    <span className={styles.heroCtaIcon}><Download size={20} /></span>
+                                </a>
+                            </div>
+                        </motion.div>
+                    </section>
+
+                    {/* ═══ FOOTER ═══ */}
+                    <footer className={styles.footer}>
+                        <div className={styles.footerGrid}>
+                            <div className={styles.footerBrand}>
+                                <div className={styles.footerBrandName}>
+                                    <div className={styles.logoIconSm} />
+                                    AapKaBakaya
+                                </div>
+                                <p className={styles.footerBrandDesc}>
+                                    Smart shop management for modern Indian retail. Built to be simple, fast, and free.
+                                </p>
+                            </div>
+                            <div className={styles.footerCol}>
+                                <h4 className={styles.footerColTitle}>Platform</h4>
+                                <a href="#">Inventory</a>
+                                <a href="#">Billing</a>
+                                <a href="#">Reports</a>
+                                <a href="#">Scanner</a>
+                            </div>
+                            <div className={styles.footerCol}>
+                                <h4 className={styles.footerColTitle}>Company</h4>
+                                <a href="#">About</a>
+                                <a href="#">Contact</a>
+                                <a href="#">Blog</a>
+                            </div>
+                            <div className={styles.footerCol}>
+                                <h4 className={styles.footerColTitle}>Legal</h4>
+                                <a href="#">Privacy</a>
+                                <a href="#">Terms</a>
+                            </div>
                         </div>
-                        <div className={styles.footerCol}>
-                            <h4 className={styles.footerColTitle}>Platform</h4>
-                            <a href="#">Inventory</a>
-                            <a href="#">Billing</a>
-                            <a href="#">Reports</a>
-                            <a href="#">Scanner</a>
+                        <div className={styles.footerBottom}>
+                            <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.2)' }}>© 2026 AapKaBakaya. All rights reserved.</span>
+                            <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.2)' }}>Created with ❤️ by Parv Baldua</span>
                         </div>
-                        <div className={styles.footerCol}>
-                            <h4 className={styles.footerColTitle}>Company</h4>
-                            <a href="#">About</a>
-                            <a href="#">Contact</a>
-                            <a href="#">Blog</a>
-                        </div>
-                        <div className={styles.footerCol}>
-                            <h4 className={styles.footerColTitle}>Legal</h4>
-                            <a href="#">Privacy</a>
-                            <a href="#">Terms</a>
-                        </div>
-                    </div>
-                    <div className={styles.footerBottom}>
-                        <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.2)' }}>© 2026 AapKaBakaya. All rights reserved.</span>
-                        <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.2)' }}>Created with ❤️ by Parv Baldua</span>
-                    </div>
-                    <div className={styles.footerBigLogo}>AapKaBakaya</div>
-                </footer>
+                        <div className={styles.footerBigLogo}>AapKaBakaya</div>
+                    </footer>
+                </>)}
+
+                {/* ═══ APP BACKDROP (If App) ═══ */}
+                {isApp && <div className="fixed inset-0 bg-[#0a0a0a]" />}
 
                 {/* ═══ AUTH MODAL ═══ */}
                 <AnimatePresence>
-                    {authModalOpen && (
+                    {(authModalOpen || isApp) && (
                         <motion.div className={styles.modalOverlay}
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                         >
@@ -416,7 +437,7 @@ export default function LandingPage() {
                                 exit={{ scale: 0.95, opacity: 0, y: 10 }}
                                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
                             >
-                                <button className={styles.closeBtn} onClick={closeAuthModal}><X size={18} /></button>
+                                {!isApp && <button className={styles.closeBtn} onClick={closeAuthModal}><X size={18} /></button>}
 
                                 {mode === 'initial' && !user && (
                                     <div className="flex flex-col gap-4 w-full">
@@ -486,7 +507,7 @@ export default function LandingPage() {
                     )}
                 </AnimatePresence>
             </div>
-            {createPortal(
+            {!isApp && createPortal(
                 <ScrollClock
                     progress={scrollYProgress}
                     opacity={scannerOpacity}
