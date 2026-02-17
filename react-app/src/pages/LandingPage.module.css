@@ -576,29 +576,43 @@
 @media (max-width: 600px) {
 
     /* ── Scroll distance on mobile ── */
-    /* Content height (1925px) + Start point (1000vh) */
+    /* Content height (1925px) + Start point (650vh) - Faster Scroll */
     .heroWrapper {
-        height: calc(1000vh + 1925px);
+        height: calc(650vh + 1925px);
+    }
+
+    .heroContent {
+        padding: 0 24px 80px;
+        justify-content: center;
+        /* Center vertically on mobile if requested, or keep flex-end */
+        /* keeping flex-end but reducing padding */
+        justify-content: flex-end;
     }
 
     /* ── Clock ── */
     .scrollClockWrapper {
-        top: 38%;
+        top: 30%;
+        /* Was 38%, moved up to remove top gap */
         transform: translateY(-50%);
     }
 
     /* Force Heading Visibility/Pos */
     .clockHeading {
-        top: -30%;
+        top: -100px;
         padding: 0 16px;
+        opacity: 1 !important;
+        /* Override JS scroll fade for visibility */
+        z-index: 100;
     }
 
     .clockHeadingText {
-        font-size: 2.5rem;
+        font-size: 2.2rem;
+        color: #111;
     }
 
     .clockHeadingSub {
         font-size: 0.9rem;
+        color: #555;
     }
 
     /* Only show active feature card — prevents overlap */
