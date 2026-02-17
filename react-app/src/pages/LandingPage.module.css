@@ -577,27 +577,60 @@
 
     /* ── Scroll distance on mobile ── */
     /* Content height (1925px) + Start point (650vh) - Faster Scroll */
+    .heroContent {
+        padding: 180px 24px 60px;
+        /* Top padding clears Navbar */
+        justify-content: flex-start;
+        /* Moves text up to remove top gap */
+        text-align: center;
+        /* Optional: centers text for better mobile balance */
+        align-items: center;
+        /* Align items to center */
+    }
+
     .heroWrapper {
         height: calc(650vh + 1925px);
     }
 
-    .heroContent {
-        padding: 0 24px 80px;
+    .heroTitle {
+        font-size: 3.5rem;
+        /* Ensure it fits */
+        margin-bottom: 20px;
+    }
+
+    .heroSubtitle {
+        text-align: center;
+        margin: 0 auto;
+    }
+
+    .heroBottom {
         justify-content: center;
-        /* Center vertically on mobile if requested, or keep flex-end */
-        /* keeping flex-end but reducing padding */
-        justify-content: flex-end;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+    }
+
+    /* ── Platform Section Mobile ── */
+    .platformSection {
+        padding: 80px 20px 40px;
+    }
+
+    .cardsGrid {
+        grid-template-columns: 1fr;
+        /* Stack cards */
+        padding-bottom: 120px;
     }
 
     /* ── Clock ── */
     .scrollClockWrapper {
         top: 30%;
-        /* Was 38%, moved up to remove top gap */
         transform: translateY(-50%);
     }
 
     /* Force Heading Visibility/Pos */
     .clockHeading {
+        top: 15%;
+
         top: -100px;
         padding: 0 16px;
         opacity: 1 !important;
