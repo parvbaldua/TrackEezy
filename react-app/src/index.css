@@ -4,6 +4,28 @@
 @tailwind components;
 @tailwind utilities;
 
+html,
+body {
+    overflow-x: hidden;
+}
+
+#root {
+    width: 100%;
+    overflow-x: clip;
+}
+
+#clock-portal {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 40;
+    overflow: hidden;
+    width: 100%;
+    height: 100vh;
+}
+
+
+
 :root {
     /* HSL Color System for Premium Feel */
 
@@ -52,9 +74,9 @@ body {
     background-color: hsl(var(--bg-main));
     color: hsl(var(--text-primary));
     font-family: 'Open Sauce One', sans-serif;
-    height: 100dvh;
+    min-height: 100dvh;
     /* Use viewport height */
-    width: 100vw;
+    width: 100%;
     -webkit-font-smoothing: antialiased;
     padding-bottom: 0;
     /* Desktop Background Pattern */
@@ -62,22 +84,26 @@ body {
 }
 
 /* Scrollbar Styling */
+/* Global Reset */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* Hide Scrollbar Standard */
+html {
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
+}
+
+/* Hide Scrollbar Webkit */
 ::-webkit-scrollbar {
-    width: 6px;
-}
-
-::-webkit-scrollbar-track {
+    display: none;
+    width: 0;
     background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-    background: hsl(var(--bg-input));
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--text-muted));
-    border-radius: 10px;
 }
 
 /* Typography Utilities */
